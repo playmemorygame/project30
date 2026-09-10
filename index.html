@@ -1,0 +1,3596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Music Challenge — Song Guessing Competition</title>
+<meta name="description" content="Listen. Guess. Score. Win.">
+
+<!-- HilltopAds: all ad configuration lives in ONE place near the
+     bottom of the script (search "HILLTOPADS CONFIGURATION"). Ads
+     are only ever loaded when the device is actually online, and
+     will load automatically the moment connectivity returns even
+     if the app was opened while offline. -->
+
+<style>
+/* ============================================================
+   DESIGN TOKENS — LIGHT THEME
+   ============================================================ */
+:root{
+  --bg:#f4f6f9;
+  --bg-raised:#ffffff;
+  --bg-card:#ffffff;
+  --bg-input:#f0f2f5;
+  --border:#d0d5dd;
+  --border-soft:#e2e6ec;
+  --text:#1a1d26;
+  --text-dim:#4a5060;
+  --text-faint:#8a90a0;
+  --violet:#7c5cfc;
+  --violet-dim:#5a42c4;
+  --violet-glow:rgba(124,92,252,.25);
+  --amber:#ffb627;
+  --amber-dim:#c98f14;
+  --teal:#0d9488;
+  --red:#ef4444;
+  --radius-sm:10px;
+  --radius:16px;
+  --radius-lg:24px;
+  --shadow:0 4px 16px -4px rgba(0,0,0,.08);
+  --tap:48px;
+  --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono: ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+  min-height:100%;
+}
+h1,h2,h3,h4,p{margin:0;}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;}
+::selection{background:var(--violet-glow);}
+:focus-visible{outline:2px solid var(--violet); outline-offset:2px; border-radius:6px;}
+a{color:var(--violet);}
+
+.app{max-width:560px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; position:relative;}
+
+/* ---------- Startup loading overlay ---------- */
+#app-loading-overlay{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  background:var(--bg);
+  transition:opacity .35s ease;
+}
+#app-loading-overlay.hide{opacity:0; pointer-events:none;}
+.loading-spinner{
+  width:44px; height:44px; border-radius:50%;
+  border:4px solid var(--border-soft); border-top-color:var(--violet);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .loading-spinner{animation-duration:1.6s;}
+}
+.screen{display:none; padding:20px 18px 40px; animation:fadeIn .35s ease;}
+.screen.active{display:flex; flex-direction:column; flex:1;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+@media (prefers-reduced-motion: reduce){
+  .screen{animation:none;}
+  *{animation-duration:.001s !important; transition-duration:.001s !important;}
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  min-height:var(--tap);
+  border-radius:14px;
+  border:1px solid transparent;
+  font-size:16px;
+  font-weight:600;
+  padding:0 20px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform .12s ease, box-shadow .12s ease, background .15s ease, opacity .15s;
+  width:100%;
+  letter-spacing:.2px;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--violet),#9b7bff); color:#fff; box-shadow:0 8px 24px -8px var(--violet-glow);}
+.btn-primary:hover{filter:brightness(1.06);}
+.btn-gold{background:linear-gradient(135deg,var(--amber),#ffd27a); color:#241705; box-shadow:0 8px 24px -8px rgba(255,182,39,.4);}
+.btn-outline{background:transparent; border:1px solid var(--border); color:var(--text);}
+.btn-outline:hover{border-color:var(--violet);}
+.btn-ghost{background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border-soft);}
+.btn-danger{background:rgba(239,68,68,.08); color:var(--red); border:1px solid rgba(239,68,68,.25);}
+.btn-sm{min-height:38px; font-size:13.5px; padding:0 14px; width:auto;}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+.btn-row{display:flex; gap:10px;}
+.btn-row .btn{flex:1;}
+
+/* ---------- Layout bits ---------- */
+.center-col{display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center; gap:18px;}
+.card{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);}
+.stack{display:flex; flex-direction:column; gap:14px;}
+.row{display:flex; align-items:center; gap:10px;}
+.row-between{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.muted{color:var(--text-dim); font-size:14px; line-height:1.5;}
+.faint{color:var(--text-faint); font-size:12.5px;}
+.tiny{font-size:12px;}
+.hidden{display:none !important;}
+.divider{height:1px; background:var(--border-soft); margin:6px 0;}
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--bg-input); color:var(--text-dim); border:1px solid var(--border);}
+.badge-open{color:var(--teal); background:rgba(13,148,136,.08); border-color:rgba(13,148,136,.25);}
+.badge-closed{color:var(--red); background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.25);}
+.badge-draft{color:var(--amber-dim); background:rgba(255,182,39,.08); border-color:rgba(255,182,39,.25);}
+
+/* ---------- Inputs ---------- */
+.field{display:flex; flex-direction:column; gap:6px; text-align:left;}
+.field label{font-size:13px; font-weight:600; color:var(--text-dim);}
+.field input[type=text],.field input[type=password],.field input[type=number],.field input[type=date],
+.field textarea, .field select{
+  background:var(--bg-input); border:1px solid var(--border); color:var(--text);
+  border-radius:12px; padding:12px 14px; font-size:16px; min-height:var(--tap); width:100%;
+}
+.field textarea{min-height:80px; resize:vertical; font-family:var(--font);}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--violet);}
+.hint-error{color:var(--red); font-size:13px; min-height:16px;}
+.switch-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 2px;}
+.switch-label{font-size:14px; font-weight:600;}
+.switch-desc{font-size:12.5px; color:var(--text-faint); margin-top:2px;}
+.switch{position:relative; width:48px; height:28px; flex:none;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .track{position:absolute; inset:0; background:var(--bg-input); border:1px solid var(--border); border-radius:999px; cursor:pointer; transition:.2s;}
+.switch .track::after{content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:var(--text-faint); border-radius:50%; transition:.2s;}
+.switch input:checked + .track{background:var(--violet-dim); border-color:var(--violet);}
+.switch input:checked + .track::after{transform:translateX(20px); background:#fff;}
+
+/* ---------- Logo / hero ---------- */
+.logo-emoji{font-size:56px; line-height:1;}
+.brand{font-size:30px; font-weight:800; letter-spacing:-.5px; color:var(--text);}
+.tagline{color:var(--text-dim); font-size:15px;}
+.gradient-text{background:linear-gradient(135deg,var(--violet),var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+
+/* ---------- Info grid on landing ---------- */
+.info-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%;}
+.info-tile{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:14px; text-align:left; box-shadow:var(--shadow);}
+.info-tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-faint); font-weight:700;}
+.info-tile .v{font-size:17px; font-weight:800; margin-top:4px;}
+
+/* ---------- Progress bar ---------- */
+.progress-wrap{width:100%;}
+.progress-track{width:100%; height:10px; background:var(--bg-input); border-radius:999px; overflow:hidden; border:1px solid var(--border-soft);}
+.progress-fill{height:100%; background:linear-gradient(90deg,var(--violet),var(--amber)); border-radius:999px; transition:width .35s ease;}
+
+/* ---------- Question / options ---------- */
+.qmeta{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--text-dim); margin-bottom:4px; padding-right:0;}
+.timer-pill{font-family:var(--mono); font-weight:700; background:var(--bg-card); border:1px solid var(--border); padding:5px 11px; border-radius:999px; font-size:13px; color:var(--text-dim);}
+.timer-pill.low{color:var(--red); border-color:rgba(239,68,68,.4); background:rgba(239,68,68,.08);}
+.qtext{font-size:19px; font-weight:700; margin:14px 0 16px; line-height:1.4;}
+
+.option-card{
+  background:var(--bg-card); border:1.5px solid var(--border-soft); border-radius:16px; padding:12px;
+  margin-bottom:10px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, background .15s;
+  box-shadow:var(--shadow);
+}
+.option-card.selected{border-color:var(--violet); background:rgba(124,92,252,.06);}
+.option-top{display:flex; align-items:center; gap:12px;}
+.option-letter{
+  width:34px; height:34px; border-radius:10px; background:var(--bg-input); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex:none; color:var(--text-dim);
+}
+.option-card.selected .option-letter{background:var(--violet); color:#fff; border-color:var(--violet);}
+.play-btn{
+  width:44px; height:44px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--violet),#9b7bff);
+  color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none; cursor:pointer;
+  box-shadow:0 6px 16px -6px var(--violet-glow);
+}
+.play-btn.playing{background:linear-gradient(135deg,var(--amber),#ffd27a); color:#241705; box-shadow:0 6px 16px -6px rgba(255,182,39,.5);}
+.audio-progress{flex:1; display:flex; align-items:center; gap:8px;}
+.audio-bar{flex:1; height:6px; border-radius:999px; background:var(--bg-input); position:relative; cursor:pointer; overflow:hidden;}
+.audio-bar-fill{position:absolute; left:0; top:0; bottom:0; background:var(--teal); border-radius:999px; width:0%;}
+.audio-time{font-family:var(--mono); font-size:11px; color:var(--text-faint); min-width:34px; text-align:right;}
+.lib-repeat-btn.active{background:rgba(124,92,252,.12); border-color:var(--violet); color:var(--violet-dim);}
+.option-pick{display:flex; align-items:center; gap:8px; padding-left:46px;}
+.option-pick input{width:18px; height:18px; accent-color:var(--violet);}
+.option-pick label{font-size:13.5px; color:var(--text-dim); cursor:pointer;}
+
+/* ---------- Result card (ENHANCED FOR SCREENSHOT) ---------- */
+.result-card{
+  background:var(--bg-card);
+  border:2px solid var(--violet);
+  border-radius:24px; padding:24px 18px; text-align:center;
+  box-shadow:0 8px 30px -12px rgba(0,0,0,.08);
+}
+.trophy{font-size:44px;}
+.result-score{font-size:64px; font-weight:900; margin:6px 0 2px; letter-spacing:-1px; color:var(--violet); line-height:1.2;}
+.result-score span{font-size:24px; color:var(--text-faint); font-weight:700;}
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;}
+.stat-box{background:var(--bg-input); border:1px solid var(--border-soft); border-radius:14px; padding:12px;}
+.stat-box .v{font-size:19px; font-weight:800; color:var(--text);}
+.stat-box .k{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;}
+.result-id{font-family:var(--mono); font-size:15px; letter-spacing:1px; background:var(--bg-input); border:1px dashed var(--border); border-radius:10px; padding:8px 12px; margin-top:14px; display:inline-block; color:var(--text-dim);}
+.result-share-hint{font-size:13px; color:var(--amber-dim); margin-top:12px; font-weight:600;}
+
+/* ---------- Voucher Claim Portal ---------- */
+.voucher-card{
+  background:var(--bg-card);
+  border:1.5px solid var(--violet);
+  border-radius:24px; padding:24px 18px; text-align:center;
+  box-shadow:0 8px 30px -12px rgba(0,0,0,.08);
+}
+.voucher-lock{font-size:40px; margin-bottom:10px;}
+.voucher-locked-text{color:var(--text-dim); margin-top:8px;}
+.voucher-input{font-size:18px; padding:14px; text-align:center; letter-spacing:1px;}
+.voucher-number{
+  font-family:var(--mono); font-size:20px; font-weight:800; letter-spacing:2px; background:var(--bg-input);
+  border:1px dashed var(--teal); border-radius:12px; padding:14px; display:inline-block; margin:12px 0; word-break:break-all;
+}
+.copy-btn{width:auto; margin-top:10px;}
+
+/* ---------- Admin ---------- */
+.topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-soft); position:sticky; top:0; background:var(--bg-raised); backdrop-filter:blur(8px); z-index:20; color:var(--text);}
+.topbar-title{font-weight:800; font-size:16px; display:flex; align-items:center; gap:8px;}
+.icon-btn{width:40px; height:40px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-soft); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px;}
+
+.stat-cards{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.stat-card{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:16px; padding:16px; box-shadow:var(--shadow);}
+.stat-card .num{font-size:26px; font-weight:900; color:var(--text);}
+.stat-card .lbl{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;}
+
+.admin-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.action-tile{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:16px 10px; text-align:center; cursor:pointer; transition:border-color .15s, transform .12s; box-shadow:var(--shadow);}
+.action-tile:active{transform:scale(.96);}
+.action-tile:hover{border-color:var(--violet);}
+.action-tile .ic{font-size:22px; margin-bottom:6px;}
+.action-tile .lbl{font-size:12.5px; font-weight:700; color:var(--text-dim);}
+
+.q-list-item{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow);}
+.q-list-item .qtitle{font-weight:700; font-size:14.5px; margin-bottom:6px; color:var(--text);}
+.q-list-item .qsub{font-size:12px; color:var(--text-faint);}
+.q-actions{display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;}
+.q-actions .btn{width:auto; flex:none;}
+
+.upload-slot{background:var(--bg-input); border:1.5px dashed var(--border); border-radius:14px; padding:14px; text-align:center;}
+.upload-slot.filled{border-style:solid; border-color:var(--teal); background:rgba(13,148,136,.06);}
+.upload-slot input[type=file]{display:none;}
+.upload-filename{font-size:12.5px; color:var(--teal); margin-top:6px; word-break:break-all;}
+.upload-label{display:block; cursor:pointer;}
+
+.stepper{display:flex; gap:6px; margin-bottom:16px;}
+.step-dot{flex:1; height:5px; border-radius:999px; background:var(--bg-input);}
+.step-dot.done{background:var(--teal);}
+.step-dot.active{background:var(--violet);}
+
+table.results-table{width:100%; border-collapse:collapse; font-size:13px;}
+table.results-table th, table.results-table td{padding:9px 6px; text-align:left; border-bottom:1px solid var(--border-soft); white-space:nowrap;}
+table.results-table th{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:.4px;}
+.table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+
+.tabs{display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;}
+.tab-btn{padding:8px 14px; border-radius:999px; background:var(--bg-card); border:1px solid var(--border-soft); color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; flex:none;}
+.tab-btn.active{background:var(--violet); color:#fff; border-color:var(--violet);}
+
+.toast-wrap{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; width:calc(100% - 36px); max-width:520px; align-items:center;}
+.toast{background:var(--bg-raised); border:1px solid var(--border); color:var(--text); padding:12px 16px; border-radius:12px; font-size:14px; box-shadow:var(--shadow); animation:toastIn .25s ease; max-width:100%;}
+.toast.success{border-color:rgba(13,148,136,.4);}
+.toast.error{border-color:rgba(239,68,68,.4);}
+@keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+
+.modal-backdrop{position:fixed; inset:0; background:rgba(15,20,30,.5); z-index:300; display:flex; align-items:flex-end; justify-content:center; backdrop-filter:blur(2px);}
+.modal-backdrop.center{align-items:center; padding:20px;}
+.modal-sheet{background:var(--bg-raised); border:1px solid var(--border); border-radius:20px 20px 0 0; padding:20px 18px 26px; width:100%; max-width:560px; max-height:85vh; overflow-y:auto; animation:sheetUp .25s ease; color:var(--text);}
+.modal-backdrop.center .modal-sheet{border-radius:18px; max-height:90vh;}
+@keyframes sheetUp{from{transform:translateY(30px); opacity:0;} to{transform:none; opacity:1;}}
+.modal-title{font-size:17px; font-weight:800; margin-bottom:10px;}
+
+.disclaimer{background:rgba(255,182,39,.08); border:1px solid rgba(255,182,39,.3); border-radius:12px; padding:12px 14px; font-size:12.5px; color:#7a5c10; line-height:1.5;}
+.security-note{font-size:11.5px; color:var(--text-faint); line-height:1.5; margin-top:10px;}
+
+.correct-flash{background:rgba(13,148,136,.1) !important; border-color:var(--teal) !important;}
+.wrong-flash{background:rgba(239,68,68,.1) !important; border-color:var(--red) !important;}
+
+.spinner{width:16px; height:16px; border-radius:50%; border:2px solid rgba(0,0,0,.2); border-top-color:var(--violet); animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.password-mask{letter-spacing:3px; font-family:var(--mono);}
+
+.empty-state{text-align:center; padding:30px 10px; color:var(--text-faint);}
+.empty-state .ic{font-size:34px; margin-bottom:8px;}
+
+/* Global Home Button (bottom right) */
+.global-home-btn{
+  position:fixed;
+  bottom:20px;
+  right:16px;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:var(--violet);
+  border:1px solid var(--violet);
+  color:#fff;
+  font-size:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:1000;
+  box-shadow:0 4px 12px rgba(124,92,252,.4);
+  transition:background .15s, transform .1s, opacity .2s;
+}
+.global-home-btn:active{transform:scale(.92);}
+.global-home-btn:hover{background:var(--violet-dim);}
+
+@media (min-width:640px){
+  .app{max-width:600px;}
+  .screen{padding:28px 26px 46px;}
+}
+</style>
+</head>
+<body>
+<div id="app-loading-overlay">
+  <div class="logo-emoji">🎵</div>
+  <div class="loading-spinner" role="status" aria-label="Loading"></div>
+  <p class="muted">Loading Music Challenge…</p>
+</div>
+<div class="app" id="app">
+
+  <!-- ============================================================
+       SCREEN: LANDING
+  ============================================================ -->
+  <section class="screen active" id="screen-landing">
+    <div class="center-col" style="padding-top:6vh;">
+      <div class="logo-emoji">🎵</div>
+      <h1 class="brand">MUSIC <span class="gradient-text">CHALLENGE</span></h1>
+      <p class="tagline">Listen. Guess. Score. Win.</p>
+
+      <div class="info-grid" id="landing-info-grid" style="margin-top:8px;"></div>
+
+      <div class="card" id="next-challenge-card-landing" style="display:none; margin-top:14px; width:100%; text-align:left;"></div>
+
+      <div class="stack" style="width:100%; margin-top:10px;">
+        <button class="btn btn-primary" id="btn-join" style="height:56px; font-size:17px;">🎧 JOIN COMPETITION</button>
+        <button class="btn btn-ghost" id="btn-open-song-library">🎵 MY SONG LIBRARY</button>
+        <button class="btn btn-ghost" id="btn-import-song-pack">📀 IMPORT SONG PACK</button>
+        <button class="btn btn-ghost" id="btn-admin">🛠 ADMIN</button>
+        <button class="btn btn-ghost" id="btn-member-import">📥 IMPORT NEW CHALLENGE</button>
+      </div>
+      <p class="faint" style="margin-top:18px;">Standalone client-side app · works offline once loaded</p>
+
+      <!-- HILLTOPADS: NATIVE AD SLOT (landing) — paste your Native ad
+           container + script code from HilltopAds inside this div. -->
+      <div id="ad-slot-landing" style="width:100%; margin-top:14px;"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: PLAYER NAME
+  ============================================================ -->
+  <section class="screen" id="screen-name">
+    <div class="row" style="margin-bottom:20px;">
+      <button class="icon-btn" data-back="screen-landing" aria-label="Back">←</button>
+    </div>
+    <div class="center-col">
+      <div class="logo-emoji">🙋</div>
+      <h2>ENTER YOUR PLAYER NAME</h2>
+      <div class="stack" style="width:100%;">
+        <div class="field">
+          <input type="text" id="input-playername" placeholder="Your name" maxlength="24" autocomplete="off">
+        </div>
+        <div class="hint-error" id="name-error"></div>
+        <button class="btn btn-primary" id="btn-name-continue">CONTINUE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: PARTICIPANT PASSWORD
+  ============================================================ -->
+  <section class="screen" id="screen-password">
+    <div class="row" style="margin-bottom:20px;">
+      <button class="icon-btn" data-back="screen-name" aria-label="Back">←</button>
+    </div>
+    <div class="center-col">
+      <div class="logo-emoji">🔐</div>
+      <h2>ENTER COMPETITION PASSWORD</h2>
+      <p class="muted">Ask the competition organizer for the password.</p>
+      <div class="stack" style="width:100%;">
+        <div class="field">
+          <input type="password" id="input-comppassword" placeholder="Enter password" autocomplete="off">
+        </div>
+        <div class="hint-error" id="password-error"></div>
+        <button class="btn btn-primary" id="btn-unlock">UNLOCK COMPETITION</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: INSTRUCTIONS
+  ============================================================ -->
+  <section class="screen" id="screen-instructions">
+    <div class="stack">
+      <h2>HOW TO PLAY</h2>
+      <div class="card stack">
+        <div class="row"><span>1️⃣</span><span>Listen to the song that plays automatically.</span></div>
+        <div class="row"><span>2️⃣</span><span>Choose the answer you think is correct.</span></div>
+        <div class="row"><span>3️⃣</span><span>Submit your answer.</span></div>
+        <div class="row" id="instr-strict"><span>4️⃣</span><span>You cannot change your answer once submitted (strict mode is on).</span></div>
+        <div class="row"><span>5️⃣</span><span>Complete all the questions.</span></div>
+        <div class="row"><span>6️⃣</span><span>Screenshot your final result.</span></div>
+        <div class="row"><span>7️⃣</span><span>Send your screenshot to the competition group or private inbox.</span></div>
+      </div>
+      <div class="card" id="instr-timer-card"></div>
+      <button class="btn btn-primary" id="btn-start-competition" style="height:56px; font-size:17px;">▶ START COMPETITION</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: QUIZ
+  ============================================================ -->
+  <section class="screen" id="screen-quiz">
+    <div class="qmeta">
+      <span id="quiz-progress-label">QUESTION 1 / 10</span>
+      <span class="timer-pill hidden" id="quiz-timer">⏱ 00:00</span>
+    </div>
+    <div class="progress-wrap" style="margin-bottom:8px;">
+      <div class="progress-track"><div class="progress-fill" id="quiz-progress-fill" style="width:0%"></div></div>
+    </div>
+    <p class="qtext">🎧 <span id="quiz-question-text">Which song is playing?</span></p>
+    <div id="quiz-song-player"></div>
+    <p class="muted" style="margin:14px 0 8px;">Which one is correct?</p>
+    <div id="quiz-options"></div>
+    <div style="margin-top:6px;">
+      <button class="btn btn-primary" id="btn-submit-answer" style="height:54px; font-size:16px;" disabled>SUBMIT ANSWER</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: RESULTS (Score prominently displayed)
+  ============================================================ -->
+  <section class="screen" id="screen-results">
+    <div class="stack">
+      <div class="result-card" id="results-card">
+        <div class="trophy">🏆</div>
+        <h2 class="gradient-text" style="margin-top:6px; font-size:24px;">🎉 Congratulations!</h2>
+        <p class="faint" style="letter-spacing:1px; margin-top:4px;">COMPETITION COMPLETE</p>
+        <h3 style="margin-top:6px; font-size:15px; color:var(--text-dim);" id="result-comp-name">Music Challenge</h3>
+        <p style="margin-top:10px; font-size:13px; color:var(--text-faint);">PLAYER</p>
+        <p style="font-size:20px; font-weight:800;" id="result-player-name">—</p>
+        <div class="result-score" id="result-score">0<span>/0</span></div>
+        <p class="faint">SCORE</p>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="v" id="result-correct" style="color:var(--teal);">0</div><div class="k">✅ Correct</div></div>
+          <div class="stat-box"><div class="v" id="result-incorrect" style="color:var(--red);">0</div><div class="k">❌ Incorrect</div></div>
+          <div class="stat-box"><div class="v" id="result-accuracy">0%</div><div class="k">📊 Accuracy</div></div>
+          <div class="stat-box"><div class="v" id="result-time">00:00</div><div class="k">⏱ Time</div></div>
+        </div>
+        <div class="result-id" id="result-id">RESULT ID: —</div>
+        <div class="result-share-hint">📸 Take a screenshot and send to the organizer</div>
+      </div>
+
+      <div class="disclaimer">📸 <strong>TAKE A SCREENSHOT OF THIS RESULT</strong><br>Then send your screenshot to the competition group to claim your prize.</div>
+
+      <button class="btn btn-outline" id="btn-screenshot-help">📸 SHOW SCREENSHOT INSTRUCTIONS</button>
+
+      <button class="btn btn-primary" id="btn-claim-voucher" style="margin-top:10px; height:56px; font-size:18px;">NEXT →</button>
+
+      <div class="divider"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-share-result">SHARE RESULT</button>
+        <button class="btn btn-outline" id="btn-share-whatsapp">💬 WHATSAPP</button>
+      </div>
+      <div id="leaderboard-block" class="card hidden">
+        <h3 style="margin-bottom:10px;">🏅 LEADERBOARD</h3>
+        <div id="leaderboard-list" class="stack"></div>
+      </div>
+
+      <!-- HilltopAds native ad — filled in by JS only when online;
+           see HILLTOPADS CONFIGURATION near the bottom of the script. -->
+      <div id="ad-slot-results" style="width:100%;"></div>
+
+      <button class="btn btn-ghost" id="btn-play-again">🔁 PLAY AGAIN</button>
+      <button class="btn btn-ghost" id="btn-results-home">🏠 BACK TO HOME</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: VOUCHER CLAIM PORTAL
+  ============================================================ -->
+  <section class="screen" id="screen-voucher-claim">
+    <div class="stack" style="justify-content:center; flex:1;">
+      <div class="voucher-card">
+        <div class="voucher-lock" id="voucher-lock-icon">🔒</div>
+        <h2 id="voucher-portal-title">VOUCHER LOCKED</h2>
+        <p class="voucher-locked-text" id="voucher-greeting">Your voucher details are protected.</p>
+        <div class="card" style="background:var(--bg-input); text-align:left; padding:16px;">
+          <p class="faint" style="margin-bottom:8px;"><strong>HOW TO UNLOCK:</strong></p>
+          <p class="muted" style="font-size:13px;">1️⃣ Take a screenshot of your final result.</p>
+          <p class="muted" style="font-size:13px;">2️⃣ Send it to the organizer on WhatsApp.</p>
+          <p class="muted" style="font-size:13px;">3️⃣ If you win, they'll send you the claim password.</p>
+          <p class="muted" style="font-size:13px;">4️⃣ Enter that password below.</p>
+        </div>
+        <div class="field" style="margin-top:16px;">
+          <label>Enter your voucher claim password</label>
+          <input type="password" id="voucher-claim-password" placeholder="Password" autocomplete="off" class="voucher-input">
+        </div>
+        <div class="hint-error" id="voucher-password-error"></div>
+        <button class="btn btn-primary" id="btn-unlock-voucher" style="font-size:18px; height:56px;">UNLOCK VOUCHER</button>
+        <div class="card" id="next-challenge-card-claim" style="display:none; margin-top:14px; text-align:left;"></div>
+        <button class="btn btn-ghost" id="btn-back-to-results" style="margin-top:10px; display:none;">← BACK TO RESULTS</button>
+        <button class="btn btn-ghost" id="btn-voucher-import" style="margin-top:10px; display:none;">📥 IMPORT NEW CHALLENGE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: VOUCHER UNLOCKED
+  ============================================================ -->
+  <section class="screen" id="screen-voucher-unlocked">
+    <div class="stack" style="justify-content:center; flex:1;">
+      <div class="voucher-card" style="border-color:var(--teal);">
+        <div class="voucher-lock">🎉</div>
+        <h2>VOUCHER UNLOCKED!</h2>
+        <p class="muted" id="voucher-unlocked-name">Congratulations, Player!</p>
+        <div class="stat-grid" style="margin-top:20px;">
+          <div class="stat-box"><div class="v" id="voucher-amount" style="color:var(--amber-dim);">—</div><div class="k">Your Prize</div></div>
+          <div class="stat-box"><div class="v" id="voucher-expiry" style="color:var(--teal);">—</div><div class="k">Expiry</div></div>
+        </div>
+        <div class="voucher-number" id="voucher-number">VOUCHER NUMBER: —</div>
+        <p class="muted" style="margin-top:4px;" id="voucher-pin-display">PIN: —</p>
+        <button class="btn btn-outline copy-btn" id="btn-copy-voucher">📋 COPY VOUCHER NUMBER</button>
+        <button class="btn btn-ghost copy-btn" id="btn-back-to-results-unlocked">← BACK TO RESULTS</button>
+        <div class="card" id="next-challenge-card-unlocked" style="display:none; margin-top:14px; text-align:left;"></div>
+        <button class="btn btn-ghost" id="btn-voucher-import-unlocked" style="margin-top:10px; display:none;">📥 IMPORT NEW CHALLENGE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN LOGIN
+  ============================================================ -->
+  <section class="screen" id="screen-admin-login">
+    <div class="row" style="margin-bottom:20px;">
+      <button class="icon-btn" data-back="screen-landing" aria-label="Back">←</button>
+    </div>
+    <div class="center-col" id="admin-login-area">
+      <!-- populated dynamically: login OR first-time setup -->
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN DASHBOARD
+  ============================================================ -->
+  <section class="screen" id="screen-admin-dashboard">
+    <div class="topbar" style="margin:-20px -18px 18px;">
+      <div class="topbar-title">🎵 MUSIC CHALLENGE ADMIN</div>
+      <button class="icon-btn" id="btn-admin-logout" aria-label="Log out">⎋</button>
+    </div>
+    <div class="stack">
+      <div class="stat-cards">
+        <div class="stat-card"><div class="num" id="dash-q-count">0</div><div class="lbl">Questions</div></div>
+        <div class="stat-card"><div class="num" id="dash-attempts">0</div><div class="lbl">Attempts</div></div>
+        <div class="stat-card"><div class="num" id="dash-top-score">0</div><div class="lbl">Top Score</div></div>
+        <div class="stat-card"><div class="num" id="dash-status">DRAFT</div><div class="lbl">Status</div></div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="action-tile" data-nav="screen-admin-question-editor" data-action="new-question"><div class="ic">➕</div><div class="lbl">CREATE QUESTION</div></div>
+        <div class="action-tile" data-nav="screen-admin-questions"><div class="ic">📋</div><div class="lbl">MANAGE QUESTIONS</div></div>
+        <div class="action-tile" data-nav="screen-admin-library"><div class="ic">🎵</div><div class="lbl">SONG LIBRARY</div></div>
+        <div class="action-tile" data-nav="screen-admin-settings"><div class="ic">⚙️</div><div class="lbl">SETTINGS</div></div>
+        <div class="action-tile" data-nav="screen-admin-results"><div class="ic">📊</div><div class="lbl">VIEW RESULTS</div></div>
+        <div class="action-tile" id="tile-export"><div class="ic">📤</div><div class="lbl">EXPORT (BACKUP)</div></div>
+        <div class="action-tile" id="tile-export-members"><div class="ic">📤</div><div class="lbl">EXPORT FOR MEMBERS</div></div>
+        <div class="action-tile" id="tile-import"><div class="ic">📥</div><div class="lbl">IMPORT</div></div>
+        <div class="action-tile" id="tile-preview"><div class="ic">👁️</div><div class="lbl">PREVIEW AS PLAYER</div></div>
+        <div class="action-tile" id="tile-toggle-status"><div class="ic">🔒</div><div class="lbl" id="tile-toggle-status-label">CLOSE COMPETITION</div></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:6px;">🎁 Voucher Settings</h3>
+        <div class="stack" id="admin-voucher-settings-inline">
+          <div class="field"><label>Voucher Amount</label><input type="text" id="vset-amount" placeholder="e.g. R50"></div>
+          <div class="field"><label>Voucher Number / Code</label><input type="text" id="vset-number" placeholder="e.g. 1234 5678 9012"></div>
+          <div class="field"><label>Voucher PIN</label><input type="text" id="vset-pin" placeholder="e.g. 4829"></div>
+          <div class="field"><label>Expiry Date</label><input type="text" id="vset-expiry" placeholder="e.g. 30 September 2026"></div>
+          <div class="field"><label>Voucher Claim Password</label><input type="text" id="vset-claim-password" placeholder="Set claim password"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-save-voucher">SAVE VOUCHER</button>
+            <button class="btn btn-danger" id="btn-clear-voucher">CLEAR</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:6px;">🌐 Remote Updates</h3>
+        <p class="muted" style="margin-bottom:8px;">Enter a public URL to a competition JSON file. The app will check for updates on startup.</p>
+        <div class="field">
+          <label>Competition JSON URL</label>
+          <input type="text" id="remote-url-input" placeholder="https://example.com/competition.json">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-save-remote-url">SAVE URL</button>
+          <button class="btn btn-ghost" id="btn-check-updates">CHECK FOR UPDATES</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:6px;">🧙 New here?</h3>
+        <p class="muted" style="margin-bottom:12px;">Use the guided wizard to set up your competition step by step.</p>
+        <button class="btn btn-primary" data-nav="screen-admin-wizard">CREATE NEW COMPETITION (WIZARD)</button>
+      </div>
+
+      <div class="card" style="border-color:rgba(255,182,39,.3);">
+        <p class="security-note" style="color:#7a5c10;">⚠️ Standalone mode provides client-side protection only. Passwords and data live in this browser. For fully secure competitions, use a backend/server.</p>
+      </div>
+
+      <input type="file" id="import-file-input" accept="application/json" class="hidden">
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN SETTINGS (kept for existing settings)
+  ============================================================ -->
+  <section class="screen" id="screen-admin-settings">
+    <div class="row" style="margin-bottom:16px;">
+      <button class="icon-btn" data-back="screen-admin-dashboard" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">Competition Settings</h2>
+    </div>
+    <div class="stack" id="settings-form">
+      <div class="field"><label>Competition name</label><input type="text" id="set-name" maxlength="60"></div>
+      <div class="field"><label>Description</label><textarea id="set-description" maxlength="200"></textarea></div>
+      <div class="field"><label>Prize</label><input type="text" id="set-prize" maxlength="80"></div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>Competition password</label>
+        <div class="row">
+          <input type="password" id="set-comp-password" placeholder="Set a password" autocomplete="off" style="flex:1;">
+          <button class="icon-btn" id="btn-toggle-comp-pw" type="button" aria-label="Show password">👁️</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" id="btn-generate-pw" type="button">🎲 GENERATE PASSWORD</button>
+        <button class="btn btn-ghost btn-sm" id="btn-copy-pw" type="button">📋 COPY PASSWORD</button>
+      </div>
+      <p class="faint">This password is never shown to participants or on the results screen.</p>
+
+      <div class="divider"></div>
+      <div class="field"><label>Points per correct answer</label><input type="number" id="set-points" min="1" value="10"></div>
+
+      <div class="switch-row">
+        <div><div class="switch-label">Enable timer</div><div class="switch-desc">Auto-submit when time runs out</div></div>
+        <label class="switch"><input type="checkbox" id="set-timer-enabled"><span class="track"></span></label>
+      </div>
+      <div class="field" id="set-timelimit-field"><label>Time limit (minutes)</label><input type="number" id="set-timelimit" min="1" value="10"></div>
+
+      <div class="switch-row">
+        <div><div class="switch-label">Randomize questions</div><div class="switch-desc">Different order per participant</div></div>
+        <label class="switch"><input type="checkbox" id="set-randomize-q"><span class="track"></span></label>
+      </div>
+      <div class="switch-row">
+        <div><div class="switch-label">Randomize answer choices</div><div class="switch-desc">Shuffle A/B/C/D positions</div></div>
+        <label class="switch"><input type="checkbox" id="set-randomize-a"><span class="track"></span></label>
+      </div>
+      <div class="switch-row">
+        <div><div class="switch-label">Strict mode</div><div class="switch-desc">Lock answers; no going back once submitted</div></div>
+        <label class="switch"><input type="checkbox" id="set-strict"><span class="track"></span></label>
+      </div>
+      <div class="switch-row">
+        <div><div class="switch-label">One attempt per device</div><div class="switch-desc">Blocks replays on this browser</div></div>
+        <label class="switch"><input type="checkbox" id="set-oneattempt"><span class="track"></span></label>
+      </div>
+      <div class="switch-row">
+        <div><div class="switch-label">Show leaderboard</div><div class="switch-desc">Visible on results screen</div></div>
+        <label class="switch"><input type="checkbox" id="set-leaderboard"><span class="track"></span></label>
+      </div>
+      <div class="switch-row">
+        <div><div class="switch-label">Allow "Play Again"</div><div class="switch-desc">Let participants retry</div></div>
+        <label class="switch"><input type="checkbox" id="set-allowreplay"><span class="track"></span></label>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>Competition status</label>
+        <select id="set-status">
+          <option value="draft">Draft</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>Competition type</label>
+        <select id="set-comptype">
+          <option value="onetime">One-time</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>🔥 Next challenge date &amp; time</label>
+        <input type="datetime-local" id="set-next-at">
+        <p class="faint" style="margin-top:2px;">Players who already finished will see a live countdown to this moment.</p>
+      </div>
+      <div class="field">
+        <label>Teaser for next challenge</label>
+        <input type="text" id="set-next-teaser" maxlength="80" placeholder="e.g. 🎸 90s Rock Anthems incoming...">
+        <p class="faint" style="margin-top:2px;">A short hint shown alongside the countdown to build hype.</p>
+      </div>
+
+      <button class="btn btn-primary" id="btn-save-settings" style="margin-top:6px;">💾 SAVE SETTINGS</button>
+
+      <div class="divider"></div>
+      <h3>Admin password</h3>
+      <div class="field"><label>Change admin password</label><input type="password" id="set-new-adminpw" placeholder="New admin password" autocomplete="off"></div>
+      <button class="btn btn-outline" id="btn-change-adminpw">CHANGE ADMIN PASSWORD</button>
+
+      <div class="card" style="border-color:rgba(239,68,68,.3); margin-top:10px;">
+        <h3 style="color:var(--red); margin-bottom:8px;">Danger zone</h3>
+        <div class="stack">
+          <button class="btn btn-danger" id="btn-reset-attempts">RESET ALL PARTICIPANT RESULTS</button>
+          <button class="btn btn-danger" id="btn-reset-everything">RESET EVERYTHING</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN QUESTIONS LIST
+  ============================================================ -->
+  <section class="screen" id="screen-admin-questions">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-admin-dashboard" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">Questions</h2>
+    </div>
+    <div class="stack">
+      <div class="field"><input type="text" id="q-search" placeholder="🔎 Search questions..."></div>
+      <p class="muted" id="q-count-label">0 QUESTIONS</p>
+      <div id="q-list"></div>
+      <button class="btn btn-primary" id="btn-add-question-from-list">➕ ADD QUESTION</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN QUESTION EDITOR
+  ============================================================ -->
+  <section class="screen" id="screen-admin-question-editor">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-admin-questions" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;" id="qed-title">Add Question</h2>
+    </div>
+    <div class="stack">
+      <div class="field"><label>Question text</label><input type="text" id="qed-text" placeholder="Which song is this?"></div>
+
+      <div class="field">
+        <label>Song audio</label>
+        <div id="qed-song-upload"></div>
+      </div>
+
+      <div class="switch-row">
+        <div><div class="switch-label">Play clip only</div><div class="switch-desc">Instead of the full song</div></div>
+        <label class="switch"><input type="checkbox" id="qed-clip-enabled"><span class="track"></span></label>
+      </div>
+      <div class="row" id="qed-clip-fields" style="gap:10px;">
+        <div class="field" style="flex:1;"><label>Clip start (sec)</label><input type="number" id="qed-clip-start" min="0" value="0"></div>
+        <div class="field" style="flex:1;"><label>Clip duration (sec)</label><input type="number" id="qed-clip-duration" min="3" value="15"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field"><label>Answer options (song names)</label></div>
+      <div id="qed-options"></div>
+
+      <div class="field">
+        <label>Correct answer</label>
+        <div class="row" id="qed-correct-row"></div>
+      </div>
+
+      <div class="hint-error" id="qed-error"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-qed-duplicate">⧉ DUPLICATE</button>
+        <button class="btn btn-primary" id="btn-qed-save">💾 SAVE QUESTION</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN RESULTS
+  ============================================================ -->
+  <section class="screen" id="screen-admin-results">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-admin-dashboard" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">Attempts</h2>
+    </div>
+    <div class="stack">
+      <div class="tabs">
+        <button class="tab-btn active" data-sort="score">🏆 Highest score</button>
+        <button class="tab-btn" data-sort="time">⚡ Fastest time</button>
+        <button class="tab-btn" data-sort="newest">🆕 Newest</button>
+      </div>
+      <div class="table-scroll card" style="padding:8px;">
+        <table class="results-table">
+          <thead><tr><th>Player</th><th>Score</th><th>Correct</th><th>Time</th><th>Result ID</th></tr></thead>
+          <tbody id="results-table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="results-empty"><div class="ic">📭</div>No attempts recorded yet.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN WIZARD
+  ============================================================ -->
+  <section class="screen" id="screen-admin-wizard">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-admin-dashboard" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">Create Competition</h2>
+    </div>
+    <div class="stepper" id="wizard-stepper"></div>
+    <div id="wizard-body" class="stack"></div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-ghost" id="wizard-prev">BACK</button>
+      <button class="btn btn-primary" id="wizard-next">NEXT</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: ADMIN SONG LIBRARY
+  ============================================================ -->
+  <section class="screen" id="screen-admin-library">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-admin-dashboard" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">Song Library</h2>
+    </div>
+    <div class="stack">
+      <p class="muted">Songs added here are stored on this device permanently — they survive resets and new competitions. Add songs, then export them as a Song Pack to send to your members.</p>
+      <div class="card">
+        <div class="field"><label>Song title</label><input type="text" id="lib-add-title" placeholder="e.g. Waka Waka"></div>
+        <div class="field"><label>Artist</label><input type="text" id="lib-add-artist" placeholder="e.g. Shakira"></div>
+        <button class="btn btn-primary" id="btn-lib-add-song">🎧 ADD SONG TO LIBRARY</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-lib-export">📤 EXPORT SONG PACK</button>
+        <button class="btn btn-outline" id="btn-lib-import">📥 IMPORT SONG PACK</button>
+      </div>
+      <!-- NEW: Selection and per-song export -->
+      <div class="btn-row" style="margin-top:4px;">
+        <button class="btn btn-ghost btn-sm" id="btn-lib-select-all">✅ SELECT ALL</button>
+        <button class="btn btn-primary btn-sm" id="btn-lib-export-selected">📤 EXPORT SELECTED</button>
+      </div>
+      <div id="lib-admin-list" class="stack"></div>
+      <div class="empty-state hidden" id="lib-admin-empty"><div class="ic">🎵</div>No songs in your library yet.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: MY SONG LIBRARY (member-facing browse & play)
+  ============================================================ -->
+  <section class="screen" id="screen-song-library">
+    <div class="row" style="margin-bottom:14px;">
+      <button class="icon-btn" data-back="screen-landing" aria-label="Back">←</button>
+      <h2 style="margin-left:8px;">My Song Library</h2>
+    </div>
+    <div class="stack">
+      <p class="muted">Songs saved on this device from imported Song Packs. They stay here even after new challenges.</p>
+      <div id="lib-member-list" class="stack"></div>
+      <div class="empty-state hidden" id="lib-member-empty"><div class="ic">🎵</div>No songs yet — import a Song Pack from the organizer to add some.</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Hidden file input for member import -->
+<input type="file" id="member-import-file-input" accept="application/json" class="hidden">
+
+<!-- Hidden file input for song pack import -->
+<input type="file" id="song-pack-file-input" accept="application/json" class="hidden">
+
+<!-- Hidden file input for admin adding a single song to the library -->
+<input type="file" id="library-add-audio-input" accept="audio/*" class="hidden">
+
+<!-- Global Home Button (bottom right) -->
+<button class="global-home-btn" id="global-home-btn" title="Home">🏠</button>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
+const DB_NAME = 'MusicChallengeDB';
+const DB_VERSION = 2;
+const STORE_AUDIO = 'audio';
+const STORE_SONGS = 'songLibrary';
+const LS_COMPETITION = 'mc_competition_v1';
+const LS_ATTEMPTS = 'mc_attempts_v1';
+const LS_SESSION = 'mc_session_v1';
+const LS_DEVICE_ATTEMPTED = 'mc_device_attempted_v1';
+const LS_ADMIN_SESSION = 'mc_admin_session_v1';
+const LS_PLAYER_NAME = 'mc_persistent_player_name';
+const LS_REMOTE_URL = 'mc_remote_url';
+const LS_COMPLETED_COMP_ID = 'mc_completed_comp_id';
+const DEFAULT_POINTS = 10;
+const DEFAULT_ADMIN_PASSWORD = 'lulamachuma@4856';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const State = {
+  competition: null,
+  attempts: [],
+  db: null,
+  isAdmin: false,
+  isPreview: false,
+  currentPlayingAudio: null,
+  currentPlayingBtn: null,
+  currentPlayingCtx: null,
+  currentPlayingSource: null,
+  lockedChallenge: false,
+  quiz: {
+    order: [],
+    optionOrders: {},
+    index: 0,
+    answers: [],
+    startTime: null,
+    timerEndTs: null,
+    timerInterval: null,
+    playerName: ''
+  },
+  editingQuestionId: null,
+  wizard: { step: 1, draft: null },
+  audioObjectUrls: {},
+  selectedSongs: new Set() // NEW: track selected song IDs in admin library
+};
+
+/* ============================================================
+   DATABASE / INDEXEDDB
+   ============================================================ */
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE_AUDIO)){
+        db.createObjectStore(STORE_AUDIO, {keyPath:'id'});
+      }
+      if(!db.objectStoreNames.contains(STORE_SONGS)){
+        db.createObjectStore(STORE_SONGS, {keyPath:'id'});
+      }
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+function idbPut(storeName, value){
+  return new Promise((resolve, reject)=>{
+    try{
+      const tx = State.db.transaction(storeName, 'readwrite');
+      tx.objectStore(storeName).put(value);
+      tx.oncomplete = ()=> resolve();
+      tx.onerror = ()=> reject(tx.error);
+    }catch(err){ reject(err); }
+  });
+}
+function idbGet(storeName, key){
+  return new Promise((resolve, reject)=>{
+    try{
+      const tx = State.db.transaction(storeName, 'readonly');
+      const req = tx.objectStore(storeName).get(key);
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error);
+    }catch(err){ reject(err); }
+  });
+}
+function idbDelete(storeName, key){
+  return new Promise((resolve, reject)=>{
+    try{
+      const tx = State.db.transaction(storeName, 'readwrite');
+      tx.objectStore(storeName).delete(key);
+      tx.oncomplete = ()=> resolve();
+      tx.onerror = ()=> reject(tx.error);
+    }catch(err){ reject(err); }
+  });
+}
+function idbGetAll(storeName){
+  return new Promise((resolve, reject)=>{
+    try{
+      const tx = State.db.transaction(storeName, 'readonly');
+      const req = tx.objectStore(storeName).getAll();
+      req.onsuccess = ()=> resolve(req.result || []);
+      req.onerror = ()=> reject(req.error);
+    }catch(err){ reject(err); }
+  });
+}
+
+/* ============================================================
+   PASSWORD MANAGEMENT
+   ============================================================ */
+async function sha256Hex(text){
+  try{
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(err){
+    let h = 0;
+    for(let i=0;i<text.length;i++){ h = (Math.imul(31,h) + text.charCodeAt(i))|0; }
+    return 'fallback_' + Math.abs(h).toString(16);
+  }
+}
+function genRandomPassword(len=8){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let out = '';
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  for(let i=0;i<len;i++) out += chars[arr[i] % chars.length];
+  return out;
+}
+function genResultId(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = 'MH-';
+  const arr = new Uint32Array(6);
+  crypto.getRandomValues(arr);
+  for(let i=0;i<6;i++) out += chars[arr[i] % chars.length];
+  return out;
+}
+function genId(prefix){
+  return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+}
+
+/* ============================================================
+   PERSISTENCE HELPERS
+   ============================================================ */
+function defaultCompetition(){
+  return {
+    id: genId('comp'),
+    name: 'Music Challenge',
+    description: 'Guess the song and win prizes!',
+    prize: 'Airtime Voucher',
+    passwordHash: null,
+    adminPasswordHash: null,
+    pointsPerQuestion: DEFAULT_POINTS,
+    timerEnabled: false,
+    timeLimitMinutes: 10,
+    randomizeQuestions: true,
+    randomizeAnswers: true,
+    strictMode: false,
+    oneAttemptPerDevice: false,
+    showLeaderboard: true,
+    allowReplay: true,
+    status: 'draft',
+    competitionType: 'onetime',
+    startDate: null,
+    endDate: null,
+    nextChallengeAt: '',
+    nextChallengeTeaser: '',
+    questions: [],
+    voucher: {
+      amount: '',
+      number: '',
+      pin: '',
+      expiry: '',
+      claimPassword: ''
+    }
+  };
+}
+function loadCompetition(){
+  try{
+    const raw = localStorage.getItem(LS_COMPETITION);
+    if(raw) return JSON.parse(raw);
+  }catch(err){ console.error('Failed to load competition', err); }
+  return defaultCompetition();
+}
+function saveCompetition(){
+  try{
+    localStorage.setItem(LS_COMPETITION, JSON.stringify(State.competition));
+  }catch(err){
+    if(err && err.name === 'QuotaExceededError'){
+      showToast('Your browser storage is full. Please export your competition and remove unused data.', 'error');
+    } else {
+      showToast('Could not save settings.', 'error');
+    }
+  }
+}
+function loadAttempts(){
+  try{
+    const raw = localStorage.getItem(LS_ATTEMPTS);
+    if(raw) return JSON.parse(raw);
+  }catch(err){ console.error('Failed to load attempts', err); }
+  return [];
+}
+function saveAttempts(){
+  try{
+    localStorage.setItem(LS_ATTEMPTS, JSON.stringify(State.attempts));
+  }catch(err){
+    showToast('Your browser storage is full. Please export your competition and remove unused data.', 'error');
+  }
+}
+function saveSession(){
+  try{ localStorage.setItem(LS_SESSION, JSON.stringify(State.quiz)); }catch(err){}
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(LS_SESSION);
+    if(raw) return JSON.parse(raw);
+  }catch(err){}
+  return null;
+}
+function clearSession(){ localStorage.removeItem(LS_SESSION); }
+
+/* Persistent player name */
+function getSavedPlayerName(){
+  try{ return localStorage.getItem(LS_PLAYER_NAME) || ''; }catch(e){ return ''; }
+}
+function savePlayerName(name){
+  try{ localStorage.setItem(LS_PLAYER_NAME, name); }catch(e){}
+}
+
+/* Remote URL */
+function getRemoteUrl(){
+  try{ return localStorage.getItem(LS_REMOTE_URL) || ''; }catch(e){ return ''; }
+}
+function saveRemoteUrl(url){
+  try{ localStorage.setItem(LS_REMOTE_URL, url); }catch(e){}
+}
+
+/* Completed competition flag */
+function getCompletedCompId(){
+  try{ return localStorage.getItem(LS_COMPLETED_COMP_ID) || ''; }catch(e){ return ''; }
+}
+function setCompletedCompId(id){
+  try{ localStorage.setItem(LS_COMPLETED_COMP_ID, id); }catch(e){}
+}
+function clearCompletedCompId(){
+  try{ localStorage.removeItem(LS_COMPLETED_COMP_ID); }catch(e){}
+}
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+function $(sel, root){ return (root||document).querySelector(sel); }
+function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+function toDatetimeLocalValue(iso){
+  try{
+    const d = new Date(iso);
+    if(isNaN(d.getTime())) return '';
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }catch(e){ return ''; }
+}
+function showScreen(id){
+  stopCurrentAudio();
+  if (State.lockedChallenge) {
+    const allowed = ['screen-results','screen-voucher-claim','screen-voucher-unlocked','screen-landing','screen-admin-login','screen-admin-dashboard','screen-admin-settings','screen-admin-questions','screen-admin-question-editor','screen-admin-results','screen-admin-wizard','screen-admin-library','screen-song-library'];
+    if (!allowed.includes(id) && !State.isAdmin) {
+      id = 'screen-voucher-claim';
+      showNextChallengeTeaser('claim');
+      const backBtn = $('#btn-back-to-results');
+      if (backBtn) backBtn.style.display = 'none';
+      const importBtn = $('#btn-voucher-import');
+      if (importBtn) importBtn.style.display = 'block';
+    } else if (id === 'screen-landing') {
+      updateLandingForLocked();
+    }
+  }
+  $all('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el){ el.classList.add('active'); window.scrollTo(0,0); }
+  refreshHilltopAdsForScreen(id);
+}
+function showToast(msg, type){
+  const wrap = $('#toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' '+type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 3200);
+}
+function fmtTime(totalSeconds){
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(totalSeconds/60).toString().padStart(2,'0');
+  const s = Math.floor(totalSeconds%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+function letterFor(idx){ return String.fromCharCode(65+idx); }
+
+function openModal({title, bodyHtml, buttons}){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop center';
+  backdrop.innerHTML = `<div class="modal-sheet">
+    <div class="modal-title">${escapeHtml(title)}</div>
+    <div class="modal-body">${bodyHtml}</div>
+    <div class="btn-row" style="margin-top:16px;" id="modal-btn-row"></div>
+  </div>`;
+  document.body.appendChild(backdrop);
+  const btnRow = backdrop.querySelector('#modal-btn-row');
+  (buttons||[]).forEach(b=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.cls||'btn-ghost');
+    btn.textContent = b.label;
+    btn.onclick = ()=>{ if(b.onClick) b.onClick(); backdrop.remove(); };
+    btnRow.appendChild(btn);
+  });
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+  return backdrop;
+}
+function confirmModal(message, onConfirm, opts){
+  opts = opts || {};
+  openModal({
+    title: opts.title || 'Are you sure?',
+    bodyHtml: `<p class="muted">${escapeHtml(message)}</p>`,
+    buttons: [
+      {label:'CANCEL', cls:'btn-ghost'},
+      {label: opts.confirmLabel || 'CONFIRM', cls:'btn-danger', onClick:onConfirm}
+    ]
+  });
+}
+
+window.addEventListener('error', function(e){
+  console.error('App error:', e.error || e.message);
+  try{ showToast('Something went wrong. Try again.', 'error'); }catch(_){}
+});
+document.addEventListener('contextmenu', function(e){
+  if(document.getElementById('screen-quiz').classList.contains('active')){
+    e.preventDefault();
+  }
+});
+
+/* ============================================================
+   AUDIO MANAGEMENT — robust playback with fallback
+   ============================================================ */
+async function getAudioUrl(audioId){
+  if(!audioId) return null;
+  if(State.audioObjectUrls[audioId]) return State.audioObjectUrls[audioId];
+  try{
+    const rec = await idbGet(STORE_AUDIO, audioId);
+    if(!rec || !rec.blob) return null;
+    let blob = rec.blob;
+    if((!blob.type || !blob.type.startsWith('audio/')) && rec.type && rec.type.startsWith('audio/')){
+      blob = new Blob([rec.blob], {type: rec.type});
+    }
+    if(!blob.type && rec.filename){
+      const ext = rec.filename.split('.').pop().toLowerCase();
+      const typeMap = {mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac', wav:'audio/wav', ogg:'audio/ogg', webm:'audio/webm', flac:'audio/flac', opus:'audio/ogg'};
+      if(typeMap[ext]) blob = new Blob([rec.blob], {type: typeMap[ext]});
+    }
+    const url = URL.createObjectURL(blob);
+    State.audioObjectUrls[audioId] = url;
+    return url;
+  }catch(err){
+    console.error('Audio load failed', err);
+    return null;
+  }
+}
+
+function stopCurrentAudio(){
+  if (State.currentPlayingAudio) {
+    State.currentPlayingAudio.pause();
+    if (State.currentPlayingBtn) {
+      State.currentPlayingBtn.classList.remove('playing', 'loading');
+      State.currentPlayingBtn.textContent = '▶';
+    }
+  }
+  const oldSource = State.currentPlayingSource;
+  const oldCtx = State.currentPlayingCtx;
+  State.currentPlayingSource = null;
+  State.currentPlayingCtx = null;
+  if (oldSource) {
+    try { oldSource.onended = null; oldSource.stop(); } catch (e) {}
+  }
+  if (oldCtx) {
+    try { oldCtx.close(); } catch (e) {}
+  }
+  State.currentPlayingAudio = null;
+  State.currentPlayingBtn = null;
+}
+
+async function playWithWebAudio(audioId, playBtn, barEl, fillEl, timeEl, clipStart, clipDuration, onEnded){
+  try{
+    const rec = await idbGet(STORE_AUDIO, audioId);
+    if(!rec || !rec.blob) return false;
+    const arrayBuffer = await rec.blob.arrayBuffer();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return false;
+    const ctx = new AudioCtx();
+    State.currentPlayingCtx = ctx;
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    const source = ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(ctx.destination);
+    State.currentPlayingSource = source;
+
+    const startAt = clipStart || 0;
+    const duration = clipDuration || audioBuffer.duration - startAt;
+    const safeDuration = Math.min(duration, audioBuffer.duration - startAt);
+
+    source.onended = ()=>{
+      if (State.currentPlayingSource !== source) return; // already stopped
+      if(playBtn){ playBtn.classList.remove('playing'); playBtn.textContent = '▶'; }
+      if(fillEl) fillEl.style.width = '0%';
+      if(timeEl) timeEl.textContent = '00:00';
+      State.currentPlayingSource = null;
+      if(onEnded) onEnded();
+    };
+
+    source.start(0, startAt, safeDuration > 0 ? safeDuration : undefined);
+    if(playBtn){ playBtn.classList.add('playing'); playBtn.textContent = '⏸'; }
+    return true;
+  }catch(err){
+    console.error('Web Audio fallback failed', err);
+    return false;
+  }
+}
+
+function wireSongPlayer(container, question){
+  const playBtn = container.querySelector('.song-player-play-btn') || container.querySelector('.play-btn');
+  const bar = container.querySelector('.audio-bar');
+  const fill = container.querySelector('.audio-bar-fill');
+  const timeEl = container.querySelector('.audio-time');
+  const statusEl = container.querySelector('.song-player-status');
+  let audioEl = null;
+  let webAudioMode = false;
+  const clipStart = (question.useClip && question.clipStart) ? Number(question.clipStart) : 0;
+  const clipDuration = (question.useClip && question.clipDuration) ? Number(question.clipDuration) : null;
+
+  function updateStatus(msg, type){
+    if(statusEl){
+      const dot = type ? `<span class="audio-status-dot ${type}"></span>` : '';
+      statusEl.innerHTML = dot + escapeHtml(msg);
+    }
+  }
+
+  async function ensureAudio(){
+    if(audioEl) return audioEl;
+    const url = await getAudioUrl(question.audioId);
+    if(!url){
+      updateStatus('⚠️ Audio unavailable — try re-uploading this song');
+      showToast('Audio data is missing. Please ask the admin to re-upload this song.', 'error');
+      return null;
+    }
+    audioEl = new Audio(url);
+    audioEl.preload = 'auto';
+    audioEl.crossOrigin = 'anonymous';
+    audioEl.addEventListener('timeupdate', ()=>{
+      if(webAudioMode) return;
+      const dur = clipDuration || audioEl.duration || 0;
+      const pos = Math.max(0, audioEl.currentTime - clipStart);
+      const pct = dur ? Math.min(100,(pos/dur)*100) : 0;
+      fill.style.width = pct+'%';
+      timeEl.textContent = fmtTime(pos);
+      if(clipDuration && audioEl.currentTime >= clipStart + clipDuration){
+        audioEl.pause();
+        audioEl.currentTime = clipStart;
+        if(!question.useClip){
+          playBtn.classList.remove('playing');
+          playBtn.textContent = '▶';
+        } else {
+          audioEl.play().catch(()=>{});
+        }
+      }
+    });
+    audioEl.addEventListener('ended', ()=>{
+      if(clipDuration && clipStart > 0){
+        audioEl.currentTime = clipStart;
+        audioEl.play().catch(()=>{});
+      } else {
+        playBtn.classList.remove('playing');
+        playBtn.textContent = '▶';
+        fill.style.width = '0%';
+        timeEl.textContent = '00:00';
+      }
+    });
+    audioEl.addEventListener('playing', ()=>{
+      playBtn.classList.remove('loading');
+      playBtn.classList.add('playing');
+      playBtn.textContent = '⏸';
+      updateStatus('▶ Now playing', 'playing');
+    });
+    audioEl.addEventListener('waiting', ()=>{
+      playBtn.classList.add('loading');
+      updateStatus('Loading audio…', 'loading');
+    });
+    audioEl.addEventListener('error', async ()=>{
+      const success = await playWithWebAudio(question.audioId, playBtn, bar, fill, timeEl, clipStart, clipDuration, ()=>{
+        webAudioMode = false;
+      });
+      if(success){
+        webAudioMode = true;
+        playBtn.classList.remove('loading');
+        playBtn.classList.add('playing');
+        playBtn.textContent = '⏸';
+        updateStatus('▶ Now playing', 'playing');
+      } else {
+        playBtn.classList.remove('loading');
+        playBtn.textContent = '▶';
+        updateStatus('⚠️ Cannot play this audio — please re-upload');
+        showToast('This audio cannot be played by your browser. Please ask the admin to re-upload in MP3 or WAV format.', 'error');
+      }
+    });
+    return audioEl;
+  }
+
+  playBtn.addEventListener('click', async ()=>{
+    const el = await ensureAudio();
+    if(!el) return;
+    if(State.currentPlayingAudio && State.currentPlayingAudio !== el){
+      stopCurrentAudio();
+    }
+    if(State.currentPlayingSource){
+      stopCurrentAudio();
+    }
+    if(el.paused){
+      if(el.currentTime < clipStart || (clipDuration && el.currentTime >= clipStart + clipDuration)){
+        el.currentTime = clipStart;
+      }
+      playBtn.classList.add('loading');
+      el.play().then(()=>{
+        playBtn.classList.remove('loading');
+        playBtn.classList.add('playing');
+        playBtn.textContent = '⏸';
+      }).catch(()=>{
+        playBtn.classList.remove('loading');
+        playBtn.classList.add('playing');
+        playBtn.textContent = '▶';
+        updateStatus('Tap to play the song');
+      });
+      State.currentPlayingAudio = el;
+      State.currentPlayingBtn = playBtn;
+    } else {
+      el.pause();
+      playBtn.classList.remove('playing');
+      playBtn.textContent = '▶';
+      updateStatus('Paused');
+    }
+  });
+
+  bar.addEventListener('click', async (e)=>{
+    const el = await ensureAudio();
+    if(!el || webAudioMode) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = Math.min(1, Math.max(0,(e.clientX - rect.left)/rect.width));
+    const dur = clipDuration || el.duration || 0;
+    el.currentTime = clipStart + pct*dur;
+  });
+
+  return {
+    async autoPlay(){
+      const el = await ensureAudio();
+      if(!el) return;
+      if(State.currentPlayingAudio && State.currentPlayingAudio !== el){
+        stopCurrentAudio();
+      }
+      if(State.currentPlayingSource){
+        stopCurrentAudio();
+      }
+      if(el.currentTime < clipStart || (clipDuration && el.currentTime >= clipStart + clipDuration)){
+        el.currentTime = clipStart;
+      }
+      playBtn.classList.add('loading');
+      updateStatus('Loading audio…', 'loading');
+      try{
+        await el.play();
+        playBtn.classList.remove('loading');
+        playBtn.classList.add('playing');
+        playBtn.textContent = '⏸';
+        updateStatus('▶ Now playing', 'playing');
+        State.currentPlayingAudio = el;
+        State.currentPlayingBtn = playBtn;
+      }catch(err){
+        playBtn.classList.remove('loading');
+        const success = await playWithWebAudio(question.audioId, playBtn, bar, fill, timeEl, clipStart, clipDuration, ()=>{
+          webAudioMode = false;
+        });
+        if(success){
+          webAudioMode = true;
+          playBtn.classList.add('playing');
+          playBtn.textContent = '⏸';
+          updateStatus('▶ Now playing', 'playing');
+        } else {
+          playBtn.classList.remove('playing');
+          playBtn.textContent = '▶';
+          updateStatus('Tap ▶ to play');
+        }
+      }
+    }
+  };
+}
+
+/* ============================================================
+   PLAYER MODE — flow control
+   ============================================================ */
+function renderLandingInfo(){
+  const c = State.competition;
+  const grid = $('#landing-info-grid');
+  const statusBadge = c.status==='open' ? '<span class="badge badge-open">● OPEN</span>'
+    : c.status==='closed' ? '<span class="badge badge-closed">● CLOSED</span>'
+    : '<span class="badge badge-draft">● DRAFT</span>';
+  grid.innerHTML = `
+    <div class="info-tile"><div class="k">🏆 Prize</div><div class="v">${escapeHtml(c.prize||'—')}</div></div>
+    <div class="info-tile"><div class="k">🎧 Questions</div><div class="v">${c.questions.length}</div></div>
+    <div class="info-tile"><div class="k">Status</div><div class="v">${statusBadge}</div></div>
+    <div class="info-tile"><div class="k">⏱ Time limit</div><div class="v">${c.timerEnabled ? c.timeLimitMinutes+' min' : 'None'}</div></div>
+  `;
+  document.title = c.name ? (c.name + ' — Music Challenge') : 'Music Challenge';
+}
+
+function updateLandingForLocked(){
+  const joinBtn = $('#btn-join');
+  if (joinBtn) {
+    joinBtn.textContent = '✅ CHALLENGE COMPLETED';
+    joinBtn.disabled = true;
+  }
+  showNextChallengeTeaser('landing');
+}
+
+$('#global-home-btn').addEventListener('click', ()=>{
+  if(State.lockedChallenge){
+    updateLandingForLocked();
+  } else {
+    const joinBtn = $('#btn-join');
+    if (joinBtn) {
+      joinBtn.textContent = '🎧 JOIN COMPETITION';
+      joinBtn.disabled = false;
+    }
+    hideNextChallengeTeaser('landing');
+  }
+  showScreen('screen-landing');
+});
+
+$('#btn-join').addEventListener('click', ()=>{
+  const c = State.competition;
+  if(c.status === 'closed'){ showToast('This competition is currently closed.', 'error'); return; }
+  if(c.status === 'draft'){ showToast('This competition has not been published yet.', 'error'); return; }
+  if(c.questions.length === 0){ showToast('No questions have been added yet.', 'error'); return; }
+  if(c.oneAttemptPerDevice && localStorage.getItem(LS_DEVICE_ATTEMPTED) === c.id){
+    showToast('You have already completed this competition on this device.', 'error'); return;
+  }
+  State.isPreview = false;
+  const saved = getSavedPlayerName();
+  const nameInput = $('#input-playername');
+  if(saved && nameInput){
+    nameInput.value = saved;
+  }
+  showScreen('screen-name');
+  $('#input-playername').focus();
+});
+
+$('#btn-member-import').addEventListener('click', ()=>{
+  $('#member-import-file-input').click();
+});
+
+$('#btn-voucher-import').addEventListener('click', ()=>{
+  $('#member-import-file-input').click();
+});
+
+$('#btn-voucher-import-unlocked').addEventListener('click', ()=>{
+  $('#member-import-file-input').click();
+});
+
+$('#member-import-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  confirmModal('Importing a new challenge will replace the current competition and reset your completion status. Continue?', ()=>{
+    handleMemberImport(file);
+  }, {confirmLabel:'IMPORT', title:'Import New Challenge?'});
+  e.target.value = '';
+});
+
+$('#btn-open-song-library').addEventListener('click', ()=>{
+  renderSongLibrary('member');
+  showScreen('screen-song-library');
+});
+
+$('#btn-import-song-pack').addEventListener('click', ()=>{
+  $('#song-pack-file-input').click();
+});
+
+$('#song-pack-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  handleSongPackImport(file, State.isAdmin ? 'admin' : 'member');
+  e.target.value = '';
+});
+
+async function handleMemberImport(file){
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    if(!payload.competition){ showToast('Invalid challenge file.', 'error'); return; }
+    
+    const existingAudio = await idbGetAll(STORE_AUDIO);
+    for(const rec of existingAudio){ await idbDelete(STORE_AUDIO, rec.id); }
+    
+    for(const a of (payload.audio||[])){
+      if(!a.data) continue;
+      const blob = await base64ToBlob(a.data, a.type);
+      await idbPut(STORE_AUDIO, {id:a.id, filename:a.filename, type:a.type, blob});
+    }
+    
+    State.competition = payload.competition;
+    if(!State.competition.voucher){
+      State.competition.voucher = { amount:'', number:'', pin:'', expiry:'', claimPassword:'' };
+    }
+    saveCompetition();
+    State.audioObjectUrls = {};
+    
+    clearCompletedCompId();
+    State.lockedChallenge = false;
+    localStorage.removeItem(LS_DEVICE_ATTEMPTED);
+    localStorage.removeItem(LS_SESSION);
+    hideNextChallengeTeaser('claim');
+    hideNextChallengeTeaser('unlocked');
+    
+    renderLandingInfo();
+    showToast('New challenge imported successfully!', 'success');
+    showScreen('screen-landing');
+  }catch(err){
+    console.error(err);
+    showToast('Import failed. The file may be corrupted.', 'error');
+  }
+}
+
+$('#btn-name-continue').addEventListener('click', ()=>{
+  const val = $('#input-playername').value.trim();
+  if(!val){ $('#name-error').textContent = 'Please enter your name.'; return; }
+  $('#name-error').textContent = '';
+  State.quiz.playerName = val;
+  savePlayerName(val);
+  showScreen('screen-password');
+  $('#input-comppassword').focus();
+});
+$('#input-playername').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btn-name-continue').click(); });
+
+$('#btn-unlock').addEventListener('click', async ()=>{
+  const pw = $('#input-comppassword').value;
+  const c = State.competition;
+  if(!c.passwordHash){ showToast('No competition password has been set up yet.', 'error'); return; }
+  const hash = await sha256Hex(pw);
+  if(hash !== c.passwordHash){ $('#password-error').textContent = 'Incorrect password.'; return; }
+  $('#password-error').textContent = '';
+  startInstructionsScreen();
+});
+$('#input-comppassword').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btn-unlock').click(); });
+
+function startInstructionsScreen(){
+  const c = State.competition;
+  $('#instr-strict').classList.toggle('hidden', !c.strictMode);
+  const timerCard = $('#instr-timer-card');
+  if(c.timerEnabled){
+    timerCard.classList.remove('hidden');
+    timerCard.innerHTML = `<div class="row"><span style="font-size:20px;">⏱</span><div><div style="font-weight:700;">Time limit: ${c.timeLimitMinutes} minutes</div><div class="faint">Timer starts once you begin, and keeps running even if you refresh.</div></div></div>`;
+  } else { timerCard.classList.add('hidden'); }
+  showScreen('screen-instructions');
+}
+
+$('#btn-start-competition').addEventListener('click', ()=>{ beginQuiz(); });
+
+function beginQuiz(){
+  const c = State.competition;
+  const qids = c.questions.map(q=>q.id);
+  const order = c.randomizeQuestions ? shuffleArray(qids) : qids;
+  const optionOrders = {};
+  c.questions.forEach(q=>{
+    const optIds = q.options.map(o=>o.id);
+    optionOrders[q.id] = c.randomizeAnswers ? shuffleArray(optIds) : optIds;
+  });
+  State.quiz.order = order;
+  State.quiz.optionOrders = optionOrders;
+  State.quiz.index = 0;
+  State.quiz.answers = [];
+  State.quiz.startTime = Date.now();
+  State.quiz.timerEndTs = c.timerEnabled ? Date.now() + c.timeLimitMinutes*60000 : null;
+  if(!State.isPreview) saveSession();
+  showScreen('screen-quiz');
+  renderQuestion();
+  startTimerIfNeeded();
+}
+
+function resumeSessionIfAny(){
+  const s = loadSession();
+  if(!s || !s.order || !s.order.length) return false;
+  const c = State.competition;
+  const validIds = new Set(c.questions.map(q=>q.id));
+  const stillValid = s.order.every(id=>validIds.has(id));
+  if(!stillValid){ clearSession(); return false; }
+  State.quiz = Object.assign(State.quiz, s);
+  State.quiz.timerInterval = null;
+  showScreen('screen-quiz');
+  renderQuestion();
+  startTimerIfNeeded();
+  showToast('Resumed your in-progress attempt.');
+  return true;
+}
+
+function currentQuestion(){
+  const c = State.competition;
+  const qid = State.quiz.order[State.quiz.index];
+  return c.questions.find(q=>q.id===qid);
+}
+
+let _currentAutoPlayFn = null;
+let autoplayToken = 0;
+
+function renderQuestion(){
+  autoplayToken++;
+  const currentToken = autoplayToken;
+  stopCurrentAudio();
+  _currentAutoPlayFn = null;
+  const c = State.competition;
+  const total = State.quiz.order.length;
+  const idx = State.quiz.index;
+  const q = currentQuestion();
+  if(!q){ finishQuiz(); return; }
+
+  $('#quiz-progress-label').textContent = `QUESTION ${idx+1} / ${total}`;
+  $('#quiz-progress-fill').style.width = Math.round((idx/total)*100) + '%';
+  $('#quiz-question-text').textContent = q.questionText || 'Which song is playing?';
+
+  const playerWrap = $('#quiz-song-player');
+  playerWrap.innerHTML = `
+    <div class="song-player-card" style="background:var(--bg-card); border:1px solid var(--border-soft); border-radius:16px; padding:12px; box-shadow:var(--shadow); margin-bottom:12px;">
+      <div class="song-player-top" style="display:flex; align-items:center; gap:14px;">
+        <button class="song-player-play-btn" type="button" aria-label="Play song" style="width:58px; height:58px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--violet),#9b7bff); color:#fff; font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px -6px var(--violet-glow);">▶</button>
+        <div class="song-player-info" style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div class="song-player-label" style="font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-faint); font-weight:700;">🎧 Now Playing</div>
+          <div class="song-player-status" style="font-size:13px; color:var(--text-dim);"><span class="audio-status-dot loading"></span> Loading…</div>
+          <div class="audio-progress" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <div class="audio-bar" style="flex:1; height:6px; border-radius:999px; background:var(--bg-input); position:relative; cursor:pointer; overflow:hidden;"><div class="audio-bar-fill" style="position:absolute; left:0; top:0; bottom:0; background:var(--teal); border-radius:999px; width:0%;"></div></div>
+            <div class="audio-time" style="font-family:var(--mono); font-size:11px; color:var(--text-faint); min-width:34px; text-align:right;">00:00</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const player = wireSongPlayer(playerWrap, q);
+  _currentAutoPlayFn = player.autoPlay;
+
+  setTimeout(()=>{
+    if (currentToken === autoplayToken && _currentAutoPlayFn) {
+      _currentAutoPlayFn();
+    }
+  }, 400);
+
+  const optOrder = State.quiz.optionOrders[q.id] || q.options.map(o=>o.id);
+  const wrap = $('#quiz-options');
+  wrap.innerHTML = '';
+  optOrder.forEach((optId, i)=>{
+    const opt = q.options.find(o=>o.id===optId);
+    if(!opt) return;
+    const div = document.createElement('div');
+    div.className = 'option-card';
+    div.dataset.optionId = opt.id;
+    div.innerHTML = `
+      <div class="option-top" style="cursor:pointer;">
+        <div class="option-letter">${letterFor(i)}</div>
+        <div style="flex:1; font-weight:700; font-size:15px;">${escapeHtml(opt.label)}</div>
+      </div>
+      <div class="option-pick">
+        <input type="radio" name="quiz-answer" id="opt-${opt.id}" value="${opt.id}">
+        <label for="opt-${opt.id}">Select this answer</label>
+      </div>`;
+    wrap.appendChild(div);
+    div.addEventListener('click', ()=> selectOption(opt.id));
+    div.querySelector('input[type=radio]').addEventListener('change', ()=> selectOption(opt.id));
+  });
+
+  $('#btn-submit-answer').disabled = true;
+  $('#btn-submit-answer').textContent = (idx === total-1) ? 'SUBMIT & FINISH' : 'SUBMIT ANSWER';
+}
+
+function selectOption(optId){
+  $all('.option-card', $('#quiz-options')).forEach(c=>{
+    const isSel = c.dataset.optionId === optId;
+    c.classList.toggle('selected', isSel);
+    const radio = c.querySelector('input[type=radio]');
+    if(radio) radio.checked = isSel;
+  });
+  $('#btn-submit-answer').disabled = false;
+  $('#btn-submit-answer').dataset.selected = optId;
+}
+
+$('#btn-submit-answer').addEventListener('click', ()=>{
+  const q = currentQuestion();
+  const selected = $('#btn-submit-answer').dataset.selected;
+  if(!selected) return;
+  const correct = selected === q.correctOption;
+  const selCard = $(`.option-card[data-option-id="${selected}"]`);
+  if(selCard) selCard.classList.add(correct ? 'correct-flash' : 'wrong-flash');
+  State.quiz.answers.push({questionId:q.id, selectedOptionId:selected, correct});
+  stopCurrentAudio();
+  _currentAutoPlayFn = null;
+  if(!State.isPreview) saveSession();
+  setTimeout(()=>{
+    State.quiz.index++;
+    if(!State.isPreview) saveSession();
+    if(State.quiz.index >= State.quiz.order.length){ finishQuiz(); }
+    else { renderQuestion(); }
+  }, 260);
+});
+
+function startTimerIfNeeded(){
+  clearInterval(State.quiz.timerInterval);
+  const pill = $('#quiz-timer');
+  if(!State.quiz.timerEndTs){ pill.classList.add('hidden'); return; }
+  pill.classList.remove('hidden');
+  function tick(){
+    const remainMs = State.quiz.timerEndTs - Date.now();
+    if(remainMs <= 0){
+      pill.textContent = '⏱ 00:00';
+      clearInterval(State.quiz.timerInterval);
+      showToast("Time's up! Submitting your answers...");
+      finishQuiz();
+      return;
+    }
+    const remainSec = remainMs/1000;
+    pill.textContent = '⏱ ' + fmtTime(remainSec);
+    pill.classList.toggle('low', remainSec <= 30);
+  }
+  tick();
+  State.quiz.timerInterval = setInterval(tick, 1000);
+}
+
+function finishQuiz(){
+  clearInterval(State.quiz.timerInterval);
+  stopCurrentAudio();
+  _currentAutoPlayFn = null;
+  const c = State.competition;
+  const answers = State.quiz.answers;
+  const correctCount = answers.filter(a=>a.correct).length;
+  const incorrectCount = answers.length - correctCount;
+  const score = correctCount * (c.pointsPerQuestion || DEFAULT_POINTS);
+  const maxScore = c.questions.length * (c.pointsPerQuestion || DEFAULT_POINTS);
+  const pct = c.questions.length ? Math.round((correctCount / c.questions.length) * 100) : 0;
+  const completionSeconds = (Date.now() - State.quiz.startTime) / 1000;
+  const resultId = genResultId();
+
+  const attempt = {
+    id: genId('att'),
+    playerName: State.quiz.playerName || 'Player',
+    score, maxScore,
+    correct: correctCount,
+    incorrect: incorrectCount,
+    total: c.questions.length,
+    percentage: pct,
+    completionTime: Math.round(completionSeconds),
+    resultId,
+    timestamp: Date.now()
+  };
+
+  if(!State.isPreview){
+    State.attempts.push(attempt);
+    saveAttempts();
+    if(c.oneAttemptPerDevice) localStorage.setItem(LS_DEVICE_ATTEMPTED, c.id);
+    clearSession();
+    setCompletedCompId(c.id);
+    State.lockedChallenge = true;
+  }
+
+  renderResults(attempt);
+  showScreen('screen-results');
+}
+
+function renderResults(attempt){
+  const c = State.competition;
+  $('#result-comp-name').textContent = c.name;
+  $('#result-player-name').textContent = attempt.playerName;
+  $('#result-score').innerHTML = `${attempt.score}<span>/${attempt.maxScore}</span>`;
+  $('#result-correct').textContent = attempt.correct;
+  $('#result-incorrect').textContent = attempt.incorrect;
+  $('#result-accuracy').textContent = attempt.percentage + '%';
+  $('#result-time').textContent = fmtTime(attempt.completionTime);
+  $('#result-id').textContent = 'RESULT ID: ' + attempt.resultId;
+  const alreadyAttempted = c.oneAttemptPerDevice && localStorage.getItem(LS_DEVICE_ATTEMPTED) === c.id;
+  $('#btn-play-again').classList.toggle('hidden', !c.allowReplay || alreadyAttempted);
+
+  const lb = $('#leaderboard-block');
+  if(c.showLeaderboard && !State.isPreview){
+    lb.classList.remove('hidden');
+    const top = State.attempts.slice().sort((a,b)=>b.score-a.score).slice(0,5);
+    const medals = ['🥇','🥈','🥉'];
+    $('#leaderboard-list').innerHTML = top.map((a,i)=>`
+      <div class="row-between">
+        <span>${medals[i]||('#'+(i+1))} ${escapeHtml(a.playerName)}</span>
+        <strong>${a.score} pts</strong>
+      </div>`).join('') || '<p class="muted">No attempts yet.</p>';
+  } else { lb.classList.add('hidden'); }
+  State._lastAttempt = attempt;
+}
+
+/* Voucher Claim Handlers */
+$('#btn-claim-voucher').addEventListener('click', ()=>{
+  const name = State.quiz.playerName || getSavedPlayerName() || 'Player';
+  $('#voucher-portal-title').textContent = '🔒 VOUCHER LOCKED';
+  $('#voucher-greeting').textContent = `Hello, ${name}! Your voucher details are protected. Send your result screenshot to the organizer on WhatsApp to receive the claim password.`;
+  $('#voucher-password-error').textContent = '';
+  $('#voucher-claim-password').value = '';
+  if(State.lockedChallenge){
+    showNextChallengeTeaser('claim');
+    $('#btn-back-to-results').style.display = 'none';
+    $('#btn-voucher-import').style.display = 'block';
+  } else {
+    hideNextChallengeTeaser('claim');
+    $('#btn-back-to-results').style.display = 'block';
+    $('#btn-voucher-import').style.display = 'none';
+  }
+  showScreen('screen-voucher-claim');
+});
+
+$('#btn-unlock-voucher').addEventListener('click', async ()=>{
+  const c = State.competition;
+  const inputPw = $('#voucher-claim-password').value;
+  const storedClaim = c.voucher.claimPassword || '';
+  if(!storedClaim || !inputPw){
+    $('#voucher-password-error').textContent = '❌ Incorrect voucher password.';
+    return;
+  }
+  const storedHash = await sha256Hex(storedClaim);
+  const inputHash = await sha256Hex(inputPw);
+  if(inputHash !== storedHash){
+    $('#voucher-password-error').textContent = '❌ Incorrect voucher password.';
+    return;
+  }
+  showUnlockedVoucher();
+});
+
+function showUnlockedVoucher(){
+  const c = State.competition;
+  const name = State.quiz.playerName || getSavedPlayerName() || 'Player';
+  $('#voucher-unlocked-name').textContent = `Congratulations, ${name}!`;
+  $('#voucher-amount').textContent = c.voucher.amount || 'Not configured';
+  $('#voucher-number').textContent = c.voucher.number || 'VOUCHER NUMBER: —';
+  $('#voucher-pin-display').textContent = c.voucher.pin ? `PIN: ${c.voucher.pin}` : '';
+  $('#voucher-expiry').textContent = c.voucher.expiry || '—';
+  if(State.lockedChallenge){
+    showNextChallengeTeaser('unlocked');
+    $('#btn-back-to-results-unlocked').style.display = 'none';
+    $('#btn-voucher-import-unlocked').style.display = 'block';
+  } else {
+    hideNextChallengeTeaser('unlocked');
+    $('#btn-back-to-results-unlocked').style.display = 'block';
+    $('#btn-voucher-import-unlocked').style.display = 'none';
+  }
+  showScreen('screen-voucher-unlocked');
+}
+
+$('#btn-copy-voucher').addEventListener('click', async ()=>{
+  const num = State.competition.voucher.number;
+  if(!num){ showToast('No voucher number configured.', 'error'); return; }
+  try{
+    await navigator.clipboard.writeText(num);
+    showToast('Voucher number copied!', 'success');
+  }catch(err){
+    showToast('Could not copy. Please copy manually.', 'error');
+  }
+});
+
+$('#btn-back-to-results').addEventListener('click', ()=>{
+  showScreen('screen-results');
+});
+$('#btn-back-to-results-unlocked').addEventListener('click', ()=>{
+  showScreen('screen-results');
+});
+
+/* ============================================================
+   NEXT-CHALLENGE COUNTDOWN / TEASER
+   ============================================================ */
+let countdownIntervalId = null;
+
+function buildNextChallengeCardHTML(){
+  return `
+    <p class="faint" style="text-align:center; letter-spacing:1px;">🔥 NEXT CHALLENGE</p>
+    <p class="qtext next-teaser-text" style="text-align:center; font-size:15.5px; margin:6px 0 14px; display:none;"></p>
+    <div class="stat-grid countdown-grid">
+      <div class="stat-box"><div class="v cd-days">00</div><div class="k">Days</div></div>
+      <div class="stat-box"><div class="v cd-hours">00</div><div class="k">Hours</div></div>
+      <div class="stat-box"><div class="v cd-mins">00</div><div class="k">Minutes</div></div>
+      <div class="stat-box"><div class="v cd-secs">00</div><div class="k">Seconds</div></div>
+    </div>
+    <p class="muted countdown-ready-text" style="text-align:center; margin-top:12px; display:none;">🎉 It's time! Tap below to check for the new challenge.</p>
+    <p class="muted countdown-none-text" style="text-align:center; margin-top:10px; display:none;">⏳ The next challenge hasn't been scheduled yet — check back soon!</p>
+    <button class="btn btn-outline btn-refresh-check" type="button" style="margin-top:12px;">🔄 CHECK FOR NEW CHALLENGE</button>`;
+}
+
+function nextChallengeCardId(which){
+  if(which==='unlocked') return '#next-challenge-card-unlocked';
+  if(which==='landing') return '#next-challenge-card-landing';
+  return '#next-challenge-card-claim';
+}
+function showNextChallengeTeaser(which){
+  const card = $(nextChallengeCardId(which));
+  if(!card) return;
+  if(!card.dataset.built){
+    card.innerHTML = buildNextChallengeCardHTML();
+    card.dataset.built = '1';
+    card.querySelector('.btn-refresh-check').addEventListener('click', handleCheckForNewChallenge);
+  }
+  card.style.display = 'block';
+  const c = State.competition;
+  const teaserEl = card.querySelector('.next-teaser-text');
+  if(c.nextChallengeTeaser){
+    teaserEl.textContent = c.nextChallengeTeaser;
+    teaserEl.style.display = 'block';
+  } else {
+    teaserEl.style.display = 'none';
+  }
+  startCountdownTicker();
+}
+
+function hideNextChallengeTeaser(which){
+  const card = $(nextChallengeCardId(which));
+  if(card) card.style.display = 'none';
+  const anyVisible = ['#next-challenge-card-claim','#next-challenge-card-unlocked','#next-challenge-card-landing']
+    .some(sel => { const el = $(sel); return el && el.style.display !== 'none'; });
+  if(!anyVisible) stopCountdownTicker();
+}
+
+function startCountdownTicker(){
+  if(countdownIntervalId) return;
+  tickCountdown();
+  countdownIntervalId = setInterval(tickCountdown, 1000);
+}
+function stopCountdownTicker(){
+  if(countdownIntervalId){ clearInterval(countdownIntervalId); countdownIntervalId = null; }
+}
+function tickCountdown(){
+  const targetIso = State.competition.nextChallengeAt;
+  const daysEls = $all('.cd-days'), hoursEls = $all('.cd-hours'), minsEls = $all('.cd-mins'), secsEls = $all('.cd-secs');
+  const readyEls = $all('.countdown-ready-text'), noneEls = $all('.countdown-none-text'), gridEls = $all('.countdown-grid');
+  if(!targetIso){
+    noneEls.forEach(el=>el.style.display='block');
+    readyEls.forEach(el=>el.style.display='none');
+    gridEls.forEach(el=>el.style.display='none');
+    return;
+  }
+  gridEls.forEach(el=>el.style.display='grid');
+  noneEls.forEach(el=>el.style.display='none');
+  const diff = new Date(targetIso).getTime() - Date.now();
+  if(diff <= 0){
+    readyEls.forEach(el=>el.style.display='block');
+    gridEls.forEach(el=>el.style.display='none');
+    return;
+  }
+  readyEls.forEach(el=>el.style.display='none');
+  const s = Math.floor(diff/1000);
+  const pad = n => String(n).padStart(2,'0');
+  const days = Math.floor(s/86400), hours = Math.floor((s%86400)/3600), mins = Math.floor((s%3600)/60), secs = s%60;
+  daysEls.forEach(el=>el.textContent=pad(days));
+  hoursEls.forEach(el=>el.textContent=pad(hours));
+  minsEls.forEach(el=>el.textContent=pad(mins));
+  secsEls.forEach(el=>el.textContent=pad(secs));
+}
+
+async function handleCheckForNewChallenge(){
+  const remoteUrl = getRemoteUrl();
+  if(remoteUrl){
+    await fetchRemoteCompetition(remoteUrl);
+  } else {
+    showToast('Ask the organizer to send you the new challenge file to import.', 'error');
+  }
+}
+
+/* ============================================================
+   REMOTE UPDATE FUNCTIONS
+   ============================================================ */
+async function fetchRemoteCompetition(url) {
+  if (!url) return;
+  showToast('Checking for updates…');
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch remote data');
+    const payload = await response.json();
+    if (!payload.competition) throw new Error('Invalid remote data');
+    
+    const oldCompId = State.competition.id;
+    const newCompId = payload.competition.id;
+    
+    const existingAudio = await idbGetAll(STORE_AUDIO);
+    for (const rec of existingAudio) {
+      await idbDelete(STORE_AUDIO, rec.id);
+    }
+    
+    for (const a of (payload.audio || [])) {
+      if (!a.data) continue;
+      const blob = await base64ToBlob(a.data, a.type);
+      await idbPut(STORE_AUDIO, { id: a.id, filename: a.filename, type: a.type, blob });
+    }
+    
+    State.competition = payload.competition;
+    if (!State.competition.voucher) {
+      State.competition.voucher = { amount:'', number:'', pin:'', expiry:'', claimPassword:'' };
+    }
+    saveCompetition();
+    State.audioObjectUrls = {};
+    renderLandingInfo();
+    
+    if (getCompletedCompId() === newCompId) {
+      State.lockedChallenge = true;
+    } else {
+      clearCompletedCompId();
+      State.lockedChallenge = false;
+      hideNextChallengeTeaser('claim');
+      hideNextChallengeTeaser('unlocked');
+      const activeScreen = $('.screen.active');
+      if (activeScreen && (activeScreen.id === 'screen-voucher-claim' || activeScreen.id === 'screen-voucher-unlocked')) {
+        showScreen('screen-landing');
+      }
+    }
+    
+    showToast('🎉 A new challenge is here — updated from server!', 'success');
+  } catch (err) {
+    console.error('Remote update failed', err);
+    showToast('Could not fetch remote competition', 'error');
+  }
+}
+
+function base64ToBlob(dataUrl, fallbackType) {
+  return new Promise((resolve, reject) => {
+    try {
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx === -1) throw new Error('Not a valid data URL');
+      const header = dataUrl.slice(0, commaIdx);
+      const base64 = dataUrl.slice(commaIdx + 1);
+      const match = header.match(/:(.*?);/);
+      // Prefer the type explicitly stored alongside the record — the mime
+      // parsed out of the data URL itself can be empty (some uploaded files
+      // report no MIME type to begin with), which otherwise produces a Blob
+      // that <audio> elements silently refuse to play after re-import.
+      const mime = fallbackType || (match && match[1]) || 'audio/mpeg';
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      resolve(new Blob([bytes], {type: mime}));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/* Admin remote URL handlers */
+$('#btn-save-remote-url').addEventListener('click', ()=>{
+  const url = $('#remote-url-input').value.trim();
+  saveRemoteUrl(url);
+  showToast('Remote URL saved.', 'success');
+});
+
+$('#btn-check-updates').addEventListener('click', ()=>{
+  const url = $('#remote-url-input').value.trim() || getRemoteUrl();
+  if (url) {
+    fetchRemoteCompetition(url);
+  } else {
+    showToast('Please enter a remote URL first.', 'error');
+  }
+});
+
+/* ============================================================
+   ADMIN MODE
+   ============================================================ */
+$('#btn-admin').addEventListener('click', ()=> renderAdminLoginScreen());
+
+function renderAdminLoginScreen(){
+  const c = State.competition;
+  const area = $('#admin-login-area');
+  if(!c.adminPasswordHash){
+    area.innerHTML = `
+      <div class="logo-emoji">🛠</div>
+      <h2>SET UP ADMIN PASSWORD</h2>
+      <p class="muted">This is your first time entering admin mode. Choose a password to protect the dashboard.</p>
+      <div class="stack" style="width:100%;">
+        <div class="field"><input type="password" id="setup-admin-pw" placeholder="Create admin password" autocomplete="new-password"></div>
+        <div class="hint-error" id="setup-admin-error"></div>
+        <button class="btn btn-primary" id="btn-setup-admin">SET PASSWORD & CONTINUE</button>
+      </div>`;
+    $('#btn-setup-admin').addEventListener('click', async ()=>{
+      const pw = $('#setup-admin-pw').value;
+      if(pw.length < 4){ $('#setup-admin-error').textContent = 'Password must be at least 4 characters.'; return; }
+      c.adminPasswordHash = await sha256Hex(pw);
+      saveCompetition();
+      enterAdminDashboard();
+    });
+  } else {
+    area.innerHTML = `
+      <div class="logo-emoji">🛠</div>
+      <h2>ADMIN LOGIN</h2>
+      <div class="stack" style="width:100%;">
+        <div class="field"><input type="password" id="admin-pw-input" placeholder="Admin password" autocomplete="off"></div>
+        <div class="hint-error" id="admin-login-error"></div>
+        <button class="btn btn-primary" id="btn-admin-login">LOGIN</button>
+      </div>`;
+    $('#btn-admin-login').addEventListener('click', async ()=>{
+      const pw = $('#admin-pw-input').value;
+      const hash = await sha256Hex(pw);
+      if(hash !== c.adminPasswordHash){ $('#admin-login-error').textContent = 'Incorrect password.'; return; }
+      enterAdminDashboard();
+    });
+    setTimeout(()=>{
+      const input = $('#admin-pw-input');
+      if(input){ input.focus(); input.addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btn-admin-login').click(); }); }
+    },0);
+  }
+  showScreen('screen-admin-login');
+}
+
+function enterAdminDashboard(){
+  State.isAdmin = true;
+  localStorage.setItem(LS_ADMIN_SESSION, '1');
+  refreshAdminDashboard();
+  fillVoucherAdminFields();
+  const savedUrl = getRemoteUrl();
+  if (savedUrl) {
+    $('#remote-url-input').value = savedUrl;
+  }
+  showScreen('screen-admin-dashboard');
+}
+$('#btn-admin-logout').addEventListener('click', ()=>{
+  State.isAdmin = false;
+  localStorage.removeItem(LS_ADMIN_SESSION);
+  showScreen('screen-landing');
+  renderLandingInfo();
+});
+
+function fillVoucherAdminFields(){
+  const v = State.competition.voucher || {};
+  $('#vset-amount').value = v.amount || '';
+  $('#vset-number').value = v.number || '';
+  $('#vset-pin').value = v.pin || '';
+  $('#vset-expiry').value = v.expiry || '';
+  $('#vset-claim-password').value = v.claimPassword || '';
+}
+
+$('#btn-save-voucher').addEventListener('click', ()=>{
+  const c = State.competition;
+  if(!c.voucher) c.voucher = {};
+  c.voucher.amount = $('#vset-amount').value.trim();
+  c.voucher.number = $('#vset-number').value.trim();
+  c.voucher.pin = $('#vset-pin').value.trim();
+  c.voucher.expiry = $('#vset-expiry').value.trim();
+  c.voucher.claimPassword = $('#vset-claim-password').value.trim();
+  saveCompetition();
+  showToast('Voucher settings saved.', 'success');
+});
+
+$('#btn-clear-voucher').addEventListener('click', ()=>{
+  const c = State.competition;
+  c.voucher = { amount:'', number:'', pin:'', expiry:'', claimPassword:'' };
+  saveCompetition();
+  fillVoucherAdminFields();
+  showToast('Voucher cleared.', 'success');
+});
+
+function refreshAdminDashboard(){
+  const c = State.competition;
+  $('#dash-q-count').textContent = c.questions.length;
+  $('#dash-attempts').textContent = State.attempts.length;
+  const top = State.attempts.reduce((m,a)=>Math.max(m,a.score),0);
+  $('#dash-top-score').textContent = top;
+  $('#dash-status').textContent = c.status.toUpperCase();
+  const toggleLbl = $('#tile-toggle-status-label');
+  toggleLbl.textContent = c.status === 'open' ? 'CLOSE COMPETITION' : 'OPEN COMPETITION';
+  fillVoucherAdminFields();
+}
+
+$all('[data-nav]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const target = el.dataset.nav;
+    if(el.dataset.action === 'new-question') openQuestionEditor(null);
+    if(target === 'screen-admin-questions') renderQuestionsList();
+    if(target === 'screen-admin-settings') fillSettingsForm();
+    if(target === 'screen-admin-results') renderResultsTable('score');
+    if(target === 'screen-admin-wizard') startWizard();
+    if(target === 'screen-admin-library') renderSongLibrary('admin');
+    showScreen(target);
+  });
+});
+$all('[data-back]').forEach(el=>{
+  el.addEventListener('click', ()=> showScreen(el.dataset.back));
+});
+
+$('#tile-preview').addEventListener('click', ()=>{
+  const c = State.competition;
+  if(c.questions.length === 0){ showToast('Add at least one question before previewing.', 'error'); return; }
+  State.isPreview = true;
+  State.quiz.playerName = 'Preview Admin';
+  beginQuiz();
+});
+function exitPreview(){
+  State.isPreview = false;
+  showScreen('screen-admin-dashboard');
+  refreshAdminDashboard();
+}
+
+$('#tile-toggle-status').addEventListener('click', ()=>{
+  const c = State.competition;
+  if(c.status === 'open'){ c.status = 'closed'; }
+  else {
+    if(!c.passwordHash){ showToast('Set a competition password in Settings before opening.', 'error'); return; }
+    if(c.questions.length === 0){ showToast('Add at least one question before opening.', 'error'); return; }
+    c.status = 'open';
+  }
+  saveCompetition();
+  refreshAdminDashboard();
+  showToast('Competition is now ' + c.status.toUpperCase(), 'success');
+});
+
+/* ============================================================
+   SETTINGS SCREEN
+   ============================================================ */
+function fillSettingsForm(){
+  const c = State.competition;
+  $('#set-name').value = c.name;
+  $('#set-description').value = c.description;
+  $('#set-prize').value = c.prize;
+  $('#set-comp-password').value = '';
+  $('#set-comp-password').placeholder = c.passwordHash ? '•••••••• (set — leave blank to keep)' : 'Set a password';
+  $('#set-points').value = c.pointsPerQuestion;
+  $('#set-timer-enabled').checked = c.timerEnabled;
+  $('#set-timelimit').value = c.timeLimitMinutes;
+  $('#set-timelimit-field').style.display = c.timerEnabled ? '' : 'none';
+  $('#set-randomize-q').checked = c.randomizeQuestions;
+  $('#set-randomize-a').checked = c.randomizeAnswers;
+  $('#set-strict').checked = c.strictMode;
+  $('#set-oneattempt').checked = c.oneAttemptPerDevice;
+  $('#set-leaderboard').checked = c.showLeaderboard;
+  $('#set-allowreplay').checked = c.allowReplay;
+  $('#set-status').value = c.status;
+  $('#set-comptype').value = c.competitionType || 'onetime';
+  $('#set-next-at').value = c.nextChallengeAt ? toDatetimeLocalValue(c.nextChallengeAt) : '';
+  $('#set-next-teaser').value = c.nextChallengeTeaser || '';
+  $('#set-new-adminpw').value = '';
+}
+$('#set-timer-enabled').addEventListener('change', ()=>{
+  $('#set-timelimit-field').style.display = $('#set-timer-enabled').checked ? '' : 'none';
+});
+$('#btn-toggle-comp-pw').addEventListener('click', ()=>{
+  const input = $('#set-comp-password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+});
+$('#btn-generate-pw').addEventListener('click', ()=>{
+  const pw = genRandomPassword(8);
+  $('#set-comp-password').value = pw;
+  $('#set-comp-password').type = 'text';
+  showToast('New password generated — remember to save settings.');
+});
+$('#btn-copy-pw').addEventListener('click', async ()=>{
+  const val = $('#set-comp-password').value;
+  if(!val){ showToast('Type or generate a password first.', 'error'); return; }
+  try{ await navigator.clipboard.writeText(val); showToast('Password copied.', 'success'); }
+  catch(err){ showToast('Could not copy — select and copy manually.', 'error'); }
+});
+
+$('#btn-save-settings').addEventListener('click', async ()=>{
+  const c = State.competition;
+  c.name = $('#set-name').value.trim() || 'Music Challenge';
+  c.description = $('#set-description').value.trim();
+  c.prize = $('#set-prize').value.trim();
+  const pwVal = $('#set-comp-password').value;
+  if(pwVal) c.passwordHash = await sha256Hex(pwVal);
+  c.pointsPerQuestion = Math.max(1, parseInt($('#set-points').value)||DEFAULT_POINTS);
+  c.timerEnabled = $('#set-timer-enabled').checked;
+  c.timeLimitMinutes = Math.max(1, parseInt($('#set-timelimit').value)||10);
+  c.randomizeQuestions = $('#set-randomize-q').checked;
+  c.randomizeAnswers = $('#set-randomize-a').checked;
+  c.strictMode = $('#set-strict').checked;
+  c.oneAttemptPerDevice = $('#set-oneattempt').checked;
+  c.showLeaderboard = $('#set-leaderboard').checked;
+  c.allowReplay = $('#set-allowreplay').checked;
+  c.status = $('#set-status').value;
+  c.competitionType = $('#set-comptype').value;
+  c.nextChallengeAt = $('#set-next-at').value ? new Date($('#set-next-at').value).toISOString() : '';
+  c.nextChallengeTeaser = $('#set-next-teaser').value.trim();
+  saveCompetition();
+  refreshAdminDashboard();
+  showToast('Settings saved.', 'success');
+});
+$('#btn-change-adminpw').addEventListener('click', async ()=>{
+  const pw = $('#set-new-adminpw').value;
+  if(pw.length < 4){ showToast('Admin password must be at least 4 characters.', 'error'); return; }
+  State.competition.adminPasswordHash = await sha256Hex(pw);
+  saveCompetition();
+  $('#set-new-adminpw').value = '';
+  showToast('Admin password changed.', 'success');
+});
+$('#btn-reset-attempts').addEventListener('click', ()=>{
+  confirmModal('Are you sure? This will permanently remove locally stored competition attempts.', ()=>{
+    State.attempts = [];
+    saveAttempts();
+    localStorage.removeItem(LS_DEVICE_ATTEMPTED);
+    refreshAdminDashboard();
+    showToast('All attempts have been reset.', 'success');
+  }, {confirmLabel:'RESET'});
+});
+$('#btn-reset-everything').addEventListener('click', ()=>{
+  confirmModal('This removes the competition, all questions, uploaded audio, settings and attempts. This cannot be undone.', ()=>{
+    confirmModal('Really delete everything? This is your final confirmation.', async ()=>{
+      localStorage.removeItem(LS_COMPETITION);
+      localStorage.removeItem(LS_ATTEMPTS);
+      localStorage.removeItem(LS_SESSION);
+      localStorage.removeItem(LS_DEVICE_ATTEMPTED);
+      clearCompletedCompId();
+      try{
+        const all = await idbGetAll(STORE_AUDIO);
+        for(const rec of all){ await idbDelete(STORE_AUDIO, rec.id); }
+      }catch(err){}
+      State.competition = defaultCompetition();
+      State.attempts = [];
+      State.lockedChallenge = false;
+      saveCompetition();
+      saveAttempts();
+      showToast('Everything has been reset.', 'success');
+      State.isAdmin = false;
+      localStorage.removeItem(LS_ADMIN_SESSION);
+      showScreen('screen-landing');
+      renderLandingInfo();
+    }, {confirmLabel:'DELETE EVERYTHING', title:'Final confirmation'});
+  }, {confirmLabel:'CONTINUE', title:'Reset everything?'});
+});
+
+/* ============================================================
+   QUESTIONS LIST / EDITOR
+   ============================================================ */
+function renderQuestionsList(){
+  const c = State.competition;
+  const search = ($('#q-search').value||'').toLowerCase();
+  const filtered = c.questions.filter(q=> !search || (q.questionText||'').toLowerCase().includes(search));
+  $('#q-count-label').textContent = c.questions.length + ' QUESTIONS';
+  const list = $('#q-list');
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty-state"><div class="ic">🎵</div>No questions have been added yet.</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach((q, idx)=>{
+    const realIdx = c.questions.indexOf(q);
+    const correctOpt = q.options.find(o=>o.id===q.correctOption);
+    const div = document.createElement('div');
+    div.className = 'q-list-item';
+    div.innerHTML = `
+      <div class="qtitle">Q${realIdx+1}. ${escapeHtml(q.questionText||'Untitled question')}</div>
+      <div class="qsub">${q.audioId ? '🎵 song uploaded' : '⚠️ no song uploaded'} · Correct: ${correctOpt ? escapeHtml(correctOpt.label) : '—'}</div>
+      <div class="q-actions">
+        <button class="btn btn-sm btn-ghost" data-act="preview">👁️ Preview</button>
+        <button class="btn btn-sm btn-ghost" data-act="edit">✏️ Edit</button>
+        <button class="btn btn-sm btn-ghost" data-act="dup">⧉ Duplicate</button>
+        <button class="btn btn-sm btn-ghost" data-act="up">⬆️</button>
+        <button class="btn btn-sm btn-ghost" data-act="down">⬇️</button>
+        <button class="btn btn-sm btn-danger" data-act="del">🗑️ Delete</button>
+      </div>`;
+    div.querySelector('[data-act=edit]').addEventListener('click', ()=> openQuestionEditor(q.id));
+    div.querySelector('[data-act=preview]').addEventListener('click', ()=> previewSingleQuestion(q));
+    div.querySelector('[data-act=dup]').addEventListener('click', ()=> duplicateQuestion(q.id));
+    div.querySelector('[data-act=del]').addEventListener('click', ()=>{
+      confirmModal('Delete this question? This cannot be undone.', ()=>{
+        c.questions = c.questions.filter(x=>x.id!==q.id);
+        saveCompetition();
+        renderQuestionsList();
+        showToast('Question deleted.', 'success');
+      }, {confirmLabel:'DELETE'});
+    });
+    div.querySelector('[data-act=up]').addEventListener('click', ()=>{
+      if(realIdx>0){ [c.questions[realIdx-1],c.questions[realIdx]] = [c.questions[realIdx],c.questions[realIdx-1]]; saveCompetition(); renderQuestionsList(); }
+    });
+    div.querySelector('[data-act=down]').addEventListener('click', ()=>{
+      if(realIdx<c.questions.length-1){ [c.questions[realIdx+1],c.questions[realIdx]] = [c.questions[realIdx],c.questions[realIdx+1]]; saveCompetition(); renderQuestionsList(); }
+    });
+    list.appendChild(div);
+  });
+}
+$('#q-search').addEventListener('input', renderQuestionsList);
+$('#btn-add-question-from-list').addEventListener('click', ()=> openQuestionEditor(null));
+
+function duplicateQuestion(qid){
+  const c = State.competition;
+  const q = c.questions.find(x=>x.id===qid);
+  if(!q) return;
+  const copy = JSON.parse(JSON.stringify(q));
+  copy.id = genId('q');
+  copy.questionText = q.questionText + ' (copy)';
+  copy.options = copy.options.map(o=>({...o, id: genId('opt')}));
+  const origIdx = q.options.findIndex(o=>o.id===q.correctOption);
+  copy.correctOption = origIdx>=0 ? copy.options[origIdx].id : copy.options[0].id;
+  c.questions.push(copy);
+  saveCompetition();
+  renderQuestionsList();
+  showToast('Question duplicated.', 'success');
+}
+
+function previewSingleQuestion(q){
+  const songLine = `<div class="row-between" style="padding:6px 0;"><span>🎧 Song audio</span><span>${q.audioId?'✅ uploaded':'⚠️ missing'}</span></div><div class="divider"></div>`;
+  const optHtml = q.options.map((o,i)=>`<div class="row-between" style="padding:6px 0;"><span>${letterFor(i)}. ${escapeHtml(o.label||'Option')}</span>${o.id===q.correctOption?'<span class="badge badge-open">CORRECT</span>':''}</div>`).join('');
+  openModal({title:'Preview: '+(q.questionText||'Question'), bodyHtml:`<div class="stack">${songLine}${optHtml}</div>`, buttons:[{label:'CLOSE'}]});
+}
+
+function emptyQuestion(){
+  return {
+    id: genId('q'),
+    questionText: '',
+    audioId: null,
+    filename: null,
+    useClip: false,
+    clipStart: 0,
+    clipDuration: 15,
+    options: [
+      {id: genId('opt'), label:''},
+      {id: genId('opt'), label:''},
+      {id: genId('opt'), label:''},
+      {id: genId('opt'), label:''},
+    ],
+    correctOption: null
+  };
+}
+let editorDraft = null;
+
+function openQuestionEditor(qid){
+  const c = State.competition;
+  State.editingQuestionId = qid;
+  if(qid){
+    const existing = c.questions.find(q=>q.id===qid);
+    editorDraft = JSON.parse(JSON.stringify(existing));
+    $('#qed-title').textContent = 'Edit Question';
+  } else {
+    editorDraft = emptyQuestion();
+    $('#qed-title').textContent = 'Add Question';
+  }
+  $('#qed-text').value = editorDraft.questionText;
+  $('#qed-error').textContent = '';
+  renderQuestionEditorSongUpload();
+  renderQuestionEditorOptions();
+  $('#qed-clip-enabled').checked = !!editorDraft.useClip;
+  $('#qed-clip-fields').style.display = editorDraft.useClip ? '' : 'none';
+  $('#qed-clip-start').value = editorDraft.clipStart || 0;
+  $('#qed-clip-duration').value = editorDraft.clipDuration || 15;
+  showScreen('screen-admin-question-editor');
+}
+
+function renderQuestionEditorSongUpload(){
+  const wrap = $('#qed-song-upload');
+  wrap.innerHTML = `
+    <div class="upload-slot ${editorDraft.audioId ? 'filled':''}">
+      <label class="upload-label">
+        <input type="file" accept="audio/*" id="qed-song-file-input">
+        <div>${editorDraft.audioId ? '🔁 Replace song' : '🎧 UPLOAD SONG AUDIO'}</div>
+      </label>
+      <div class="upload-filename">${editorDraft.filename ? escapeHtml(editorDraft.filename) : ''}</div>
+      <audio id="qed-song-preview" controls style="width:100%; margin-top:8px; ${editorDraft.audioId?'':'display:none;'}"></audio>
+      <button type="button" class="btn btn-sm btn-ghost" id="qed-song-remove-btn" style="margin-top:8px; ${editorDraft.audioId?'':'display:none;'}">✕ Remove audio</button>
+    </div>`;
+  $('#qed-song-file-input').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const audioId = genId('audio');
+    try{
+      await idbPut(STORE_AUDIO, {id:audioId, blob:file, filename:file.name, type:file.type || 'audio/mpeg'});
+      editorDraft.audioId = audioId;
+      editorDraft.filename = file.name;
+      renderQuestionEditorSongUpload();
+      showToast('Song uploaded: ' + file.name, 'success');
+    }catch(err){
+      showToast('Failed to store audio. Your browser storage may be full.', 'error');
+    }
+  });
+  $('#qed-song-remove-btn').addEventListener('click', async ()=>{
+    if(editorDraft.audioId){ try{ await idbDelete(STORE_AUDIO, editorDraft.audioId); }catch(err){} }
+    editorDraft.audioId = null; editorDraft.filename = null;
+    renderQuestionEditorSongUpload();
+  });
+  if(editorDraft.audioId){
+    getAudioUrl(editorDraft.audioId).then(url=>{
+      if(url){ const p = $('#qed-song-preview'); if(p){ p.src = url; p.style.display=''; } }
+    });
+  }
+}
+
+function renderQuestionEditorOptions(){
+  const wrap = $('#qed-options');
+  wrap.innerHTML = '';
+  editorDraft.options.forEach((opt, i)=>{
+    const div = document.createElement('div');
+    div.className = 'field';
+    div.innerHTML = `
+      <label>Option ${letterFor(i)}</label>
+      <input type="text" class="opt-label-input" value="${escapeHtml(opt.label)}" placeholder="e.g. song title / artist" style="margin-bottom:4px;">`;
+    wrap.appendChild(div);
+    div.querySelector('.opt-label-input').addEventListener('input', (e)=>{ opt.label = e.target.value; renderCorrectRow(); });
+  });
+  renderCorrectRow();
+}
+function renderCorrectRow(){
+  const row = $('#qed-correct-row');
+  row.innerHTML = '';
+  editorDraft.options.forEach((opt,i)=>{
+    const id = 'correct-'+opt.id;
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:6px;background:var(--bg-input);border:1px solid var(--border);padding:8px 12px;border-radius:10px;cursor:pointer;flex:1;justify-content:center;';
+    label.innerHTML = `<input type="radio" name="qed-correct" id="${id}" ${editorDraft.correctOption===opt.id?'checked':''}> <span>${letterFor(i)}</span>`;
+    label.querySelector('input').addEventListener('change', ()=>{ editorDraft.correctOption = opt.id; });
+    row.appendChild(label);
+  });
+}
+$('#qed-text').addEventListener('input', e=>{ editorDraft.questionText = e.target.value; });
+$('#qed-clip-enabled').addEventListener('change', ()=>{
+  $('#qed-clip-fields').style.display = $('#qed-clip-enabled').checked ? '' : 'none';
+});
+
+$('#btn-qed-save').addEventListener('click', ()=>{
+  const c = State.competition;
+  if(!editorDraft.questionText.trim()){ $('#qed-error').textContent = 'Please enter the question text.'; return; }
+  if(!editorDraft.audioId){ $('#qed-error').textContent = 'Please upload the song audio.'; return; }
+  const missingLabel = editorDraft.options.some(o=>!o.label || !o.label.trim());
+  if(missingLabel){ $('#qed-error').textContent = 'Please fill in all four answer options.'; return; }
+  if(!editorDraft.correctOption){ $('#qed-error').textContent = 'Please select the correct answer.'; return; }
+
+  editorDraft.useClip = $('#qed-clip-enabled').checked;
+  editorDraft.clipStart = Math.max(0, parseInt($('#qed-clip-start').value)||0);
+  editorDraft.clipDuration = Math.max(3, parseInt($('#qed-clip-duration').value)||15);
+
+  $('#qed-error').textContent = '';
+  const existingIdx = c.questions.findIndex(q=>q.id===editorDraft.id);
+  if(existingIdx >= 0){ c.questions[existingIdx] = editorDraft; }
+  else { c.questions.push(editorDraft); }
+  saveCompetition();
+  refreshAdminDashboard();
+  showToast('Question saved.', 'success');
+  showScreen('screen-admin-questions');
+  renderQuestionsList();
+});
+$('#btn-qed-duplicate').addEventListener('click', ()=>{
+  const copy = JSON.parse(JSON.stringify(editorDraft));
+  copy.id = genId('q');
+  copy.options = copy.options.map(o=>({...o, id: genId('opt')}));
+  const origIdx = editorDraft.options.findIndex(o=>o.id===editorDraft.correctOption);
+  copy.correctOption = origIdx>=0 ? copy.options[origIdx].id : null;
+  State.competition.questions.push(copy);
+  saveCompetition();
+  showToast('Duplicated as a new question — edit it from the list.', 'success');
+  showScreen('screen-admin-questions');
+  renderQuestionsList();
+});
+
+/* ============================================================
+   RESULTS TABLE
+   ============================================================ */
+function renderResultsTable(sortMode){
+  const body = $('#results-table-body');
+  let list = State.attempts.slice();
+  if(sortMode==='score') list.sort((a,b)=> b.score-a.score);
+  else if(sortMode==='time') list.sort((a,b)=> a.completionTime-b.completionTime);
+  else if(sortMode==='newest') list.sort((a,b)=> b.timestamp-a.timestamp);
+  $('#results-empty').classList.toggle('hidden', list.length>0);
+  body.innerHTML = list.map(a=>`
+    <tr>
+      <td>${escapeHtml(a.playerName)}</td>
+      <td>${a.score}</td>
+      <td>${a.correct}/${a.total}</td>
+      <td>${fmtTime(a.completionTime)}</td>
+      <td>${a.resultId}</td>
+    </tr>`).join('');
+}
+$all('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $all('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderResultsTable(btn.dataset.sort);
+  });
+});
+
+/* ============================================================
+   EXPORT / IMPORT (Admin)
+   ============================================================ */
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onloadend = ()=> resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+// Backup export (includes attempts)
+$('#tile-export').addEventListener('click', async ()=>{
+  showToast('Preparing export…');
+  try{
+    const audioRecords = await idbGetAll(STORE_AUDIO);
+    const audioData = [];
+    for(const rec of audioRecords){
+      const b64 = await blobToBase64(rec.blob);
+      audioData.push({id:rec.id, filename:rec.filename, type:rec.type, data:b64});
+    }
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      appVersion: 1,
+      competition: State.competition,
+      attempts: State.attempts,
+      audio: audioData
+    };
+    const json = JSON.stringify(payload);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'music-competition-backup.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    showToast('Export downloaded.', 'success');
+  }catch(err){
+    console.error(err);
+    showToast('Export failed — your competition may include very large audio files.', 'error');
+  }
+});
+
+// Export for Members
+$('#tile-export-members').addEventListener('click', async ()=>{
+  showToast('Preparing member export…');
+  try{
+    const audioRecords = await idbGetAll(STORE_AUDIO);
+    const audioData = [];
+    for(const rec of audioRecords){
+      const b64 = await blobToBase64(rec.blob);
+      audioData.push({id:rec.id, filename:rec.filename, type:rec.type, data:b64});
+    }
+    const comp = JSON.parse(JSON.stringify(State.competition));
+    if(comp.adminPasswordHash) delete comp.adminPasswordHash;
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      appVersion: 1,
+      competition: comp,
+      audio: audioData
+    };
+    const json = JSON.stringify(payload);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'music-challenge-member.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    showToast('Member export downloaded.', 'success');
+  }catch(err){
+    console.error(err);
+    showToast('Export failed — your competition may include very large audio files.', 'error');
+  }
+});
+
+$('#tile-import').addEventListener('click', ()=> $('#import-file-input').click());
+$('#import-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  confirmModal('Importing will replace your current competition, questions, audio and attempts. Continue?', ()=>{
+    doImport(file);
+  }, {confirmLabel:'IMPORT', title:'Import competition?'});
+  e.target.value = '';
+});
+async function doImport(file){
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    if(!payload.competition){ showToast('Invalid backup file.', 'error'); return; }
+    const existing = await idbGetAll(STORE_AUDIO);
+    for(const rec of existing){ await idbDelete(STORE_AUDIO, rec.id); }
+    for(const a of (payload.audio||[])){
+      const blob = await base64ToBlob(a.data, a.type);
+      await idbPut(STORE_AUDIO, {id:a.id, filename:a.filename, type:a.type, blob});
+    }
+    State.competition = payload.competition;
+    State.attempts = payload.attempts || [];
+    State.audioObjectUrls = {};
+    if (getCompletedCompId() === State.competition.id) {
+      State.lockedChallenge = true;
+    } else {
+      clearCompletedCompId();
+      State.lockedChallenge = false;
+    }
+    saveCompetition();
+    saveAttempts();
+    showToast('Competition imported successfully.', 'success');
+    refreshAdminDashboard();
+  }catch(err){
+    console.error(err);
+    showToast('Import failed. The file may be corrupted.', 'error');
+  }
+}
+
+/* ============================================================
+   WIZARD
+   ============================================================ */
+const WIZARD_STEPS = ['Info','Password','Songs','Answers','Scoring','Preview','Publish'];
+function startWizard(){
+  State.wizard.step = 1;
+  State.wizard.draft = JSON.parse(JSON.stringify(State.competition));
+  renderWizard();
+}
+function renderWizard(){
+  const stepper = $('#wizard-stepper');
+  stepper.innerHTML = WIZARD_STEPS.map((_,i)=>{
+    const n = i+1;
+    let cls = 'step-dot';
+    if(n < State.wizard.step) cls += ' done';
+    else if(n === State.wizard.step) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  const body = $('#wizard-body');
+  const d = State.wizard.draft;
+  const step = State.wizard.step;
+  $('#wizard-prev').style.visibility = step===1 ? 'hidden' : 'visible';
+  $('#wizard-next').textContent = step === WIZARD_STEPS.length ? '🚀 PUBLISH' : 'NEXT';
+
+  if(step===1){
+    body.innerHTML = `
+      <h3>Step 1 · Competition information</h3>
+      <div class="field"><label>Competition name</label><input type="text" id="wz-name" value="${escapeHtml(d.name)}"></div>
+      <div class="field"><label>Description</label><textarea id="wz-desc">${escapeHtml(d.description)}</textarea></div>
+      <div class="field"><label>Prize</label><input type="text" id="wz-prize" value="${escapeHtml(d.prize)}"></div>`;
+  } else if(step===2){
+    body.innerHTML = `
+      <h3>Step 2 · Competition password</h3>
+      <p class="muted">Participants will need this password to join.</p>
+      <div class="field"><label>Password</label><input type="text" id="wz-password" placeholder="Enter or generate a password"></div>
+      <button class="btn btn-outline btn-sm" id="wz-gen-pw" type="button" style="width:auto;">🎲 GENERATE</button>`;
+    setTimeout(()=>{
+      $('#wz-gen-pw').addEventListener('click', ()=>{ $('#wz-password').value = genRandomPassword(8); });
+    },0);
+  } else if(step===3){
+    body.innerHTML = `
+      <h3>Step 3 · Add songs</h3>
+      <p class="muted">Add your questions with the question builder. You currently have <strong>${d.questions.length}</strong> question(s).</p>
+      <button class="btn btn-primary" id="wz-add-q" type="button">➕ ADD QUESTION NOW</button>
+      <p class="faint">You'll be taken to the question editor; come back to the wizard afterward from Manage Questions, or continue for now.</p>`;
+    setTimeout(()=>{
+      $('#wz-add-q').addEventListener('click', ()=>{
+        saveWizardDraftToCompetition();
+        openQuestionEditor(null);
+      });
+    },0);
+  } else if(step===4){
+    body.innerHTML = `
+      <h3>Step 4 · Correct answers</h3>
+      <p class="muted">Confirm every question has a correct answer selected.</p>
+      <div class="stack">${d.questions.map((q,i)=>`<div class="row-between"><span>Q${i+1}. ${escapeHtml(q.questionText||'Untitled')}</span><span class="badge ${q.correctOption?'badge-open':'badge-closed'}">${q.correctOption?'SET':'MISSING'}</span></div>`).join('') || '<p class="muted">No questions yet.</p>'}</div>`;
+  } else if(step===5){
+    body.innerHTML = `
+      <h3>Step 5 · Scoring</h3>
+      <div class="field"><label>Points per correct answer</label><input type="number" id="wz-points" value="${d.pointsPerQuestion}" min="1"></div>
+      <div class="switch-row"><div><div class="switch-label">Enable timer</div></div><label class="switch"><input type="checkbox" id="wz-timer" ${d.timerEnabled?'checked':''}><span class="track"></span></label></div>
+      <div class="field"><label>Time limit (minutes)</label><input type="number" id="wz-timelimit" value="${d.timeLimitMinutes}" min="1"></div>
+      <div class="switch-row"><div><div class="switch-label">Randomize questions</div></div><label class="switch"><input type="checkbox" id="wz-randq" ${d.randomizeQuestions?'checked':''}><span class="track"></span></label></div>
+      <div class="switch-row"><div><div class="switch-label">Randomize answers</div></div><label class="switch"><input type="checkbox" id="wz-randa" ${d.randomizeAnswers?'checked':''}><span class="track"></span></label></div>`;
+  } else if(step===6){
+    saveWizardDraftToCompetition(true);
+    body.innerHTML = `
+      <h3>Step 6 · Preview</h3>
+      <div class="card stack">
+        <div class="row-between"><span>Name</span><strong>${escapeHtml(d.name)}</strong></div>
+        <div class="row-between"><span>Prize</span><strong>${escapeHtml(d.prize)}</strong></div>
+        <div class="row-between"><span>Questions</span><strong>${d.questions.length}</strong></div>
+        <div class="row-between"><span>Points each</span><strong>${d.pointsPerQuestion}</strong></div>
+        <div class="row-between"><span>Timer</span><strong>${d.timerEnabled ? d.timeLimitMinutes+' min' : 'Off'}</strong></div>
+        <div class="row-between"><span>Password set</span><strong>${d.passwordHash?'Yes':'No'}</strong></div>
+      </div>
+      <button class="btn btn-outline" id="wz-live-preview" type="button">👁️ PREVIEW AS PLAYER</button>`;
+    setTimeout(()=>{
+      $('#wz-live-preview').addEventListener('click', ()=>{
+        if(State.competition.questions.length===0){ showToast('Add at least one question first.', 'error'); return; }
+        State.isPreview = true;
+        State.quiz.playerName = 'Preview Admin';
+        beginQuiz();
+      });
+    },0);
+  } else if(step===7){
+    body.innerHTML = `
+      <h3>Step 7 · Publish</h3>
+      <p class="muted">Set the competition status to Open so participants can join.</p>
+      <div class="field">
+        <label>Status</label>
+        <select id="wz-status">
+          <option value="draft" ${d.status==='draft'?'selected':''}>Draft</option>
+          <option value="open" ${d.status==='open'?'selected':''}>Open</option>
+        </select>
+      </div>`;
+  }
+}
+function saveWizardDraftToCompetition(silent){
+  const d = State.wizard.draft;
+  const step = State.wizard.step;
+  if(step===1){
+    d.name = $('#wz-name') ? $('#wz-name').value.trim()||'Music Challenge' : d.name;
+    d.description = $('#wz-desc') ? $('#wz-desc').value.trim() : d.description;
+    d.prize = $('#wz-prize') ? $('#wz-prize').value.trim() : d.prize;
+  }
+  if(step===2 && $('#wz-password')){
+    const pw = $('#wz-password').value;
+    if(pw) d._pendingPassword = pw;
+  }
+  if(step===5){
+    if($('#wz-points')) d.pointsPerQuestion = Math.max(1, parseInt($('#wz-points').value)||10);
+    if($('#wz-timer')) d.timerEnabled = $('#wz-timer').checked;
+    if($('#wz-timelimit')) d.timeLimitMinutes = Math.max(1, parseInt($('#wz-timelimit').value)||10);
+    if($('#wz-randq')) d.randomizeQuestions = $('#wz-randq').checked;
+    if($('#wz-randa')) d.randomizeAnswers = $('#wz-randa').checked;
+  }
+  if(step===7 && $('#wz-status')){
+    d.status = $('#wz-status').value;
+  }
+  d.questions = State.competition.questions;
+  State.competition = Object.assign(State.competition, d);
+  saveCompetition();
+}
+$('#wizard-next').addEventListener('click', async ()=>{
+  saveWizardDraftToCompetition();
+  const d = State.wizard.draft;
+  if(State.wizard.step===2 && d._pendingPassword){
+    d.passwordHash = await sha256Hex(d._pendingPassword);
+    delete d._pendingPassword;
+    State.competition.passwordHash = d.passwordHash;
+    saveCompetition();
+  }
+  if(State.wizard.step === WIZARD_STEPS.length){
+    if(!State.competition.passwordHash){ showToast('Please set a competition password (step 2) before publishing.', 'error'); return; }
+    if(State.competition.questions.length===0){ showToast('Add at least one question before publishing.', 'error'); return; }
+    saveCompetition();
+    refreshAdminDashboard();
+    showToast('Competition published!', 'success');
+    showScreen('screen-admin-dashboard');
+    return;
+  }
+  State.wizard.step++;
+  renderWizard();
+});
+$('#wizard-prev').addEventListener('click', ()=>{
+  saveWizardDraftToCompetition();
+  if(State.wizard.step>1){ State.wizard.step--; renderWizard(); }
+});
+
+/* ============================================================
+   SONG LIBRARY — ADMIN & MEMBER (WITH SELECTION)
+   ============================================================ */
+async function renderSongLibrary(mode){
+  const listId = mode === 'admin' ? '#lib-admin-list' : '#lib-member-list';
+  const emptyId = mode === 'admin' ? '#lib-admin-empty' : '#lib-member-empty';
+  const list = $(listId);
+  const empty = $(emptyId);
+  if(!list || !empty) return;
+
+  let songs = [];
+  try{
+    songs = await idbGetAll(STORE_SONGS);
+  }catch(err){
+    console.error('Failed to load song library', err);
+    showToast('Could not load song library.', 'error');
+    return;
+  }
+
+  if(songs.length === 0){
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  list.innerHTML = '';
+
+  for(const song of songs){
+    const div = document.createElement('div');
+    div.className = 'q-list-item';
+    const playerHtml = `
+      <div class="lib-player-row" style="display:flex; align-items:center; gap:10px; margin-top:12px;">
+        <button class="play-btn lib-play-btn" type="button" aria-label="Play ${escapeHtml(song.title||'song')}">▶</button>
+        <div class="audio-progress" style="flex:1;">
+          <div class="audio-bar"><div class="audio-bar-fill"></div></div>
+        </div>
+        <div class="audio-time" style="min-width:78px;">00:00 / 00:00</div>
+        <button class="btn btn-sm btn-ghost lib-repeat-btn" type="button" title="Repeat" aria-label="Repeat" aria-pressed="false">🔁</button>
+      </div>`;
+    // For admin mode, include a checkbox for selection
+    if(mode === 'admin'){
+      div.innerHTML = `
+        <div class="row-between" style="align-items:flex-start;">
+          <div style="flex:1;">
+            <div class="qtitle">${escapeHtml(song.title || 'Untitled')}</div>
+            <div class="qsub">${escapeHtml(song.artist || 'Unknown artist')}${song.filename ? ' · '+escapeHtml(song.filename) : ''}</div>
+          </div>
+          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" class="song-select-checkbox" data-song-id="${song.id}" ${State.selectedSongs.has(song.id) ? 'checked' : ''}>
+            <span style="font-size:12px;">Select</span>
+          </label>
+        </div>
+        ${playerHtml}
+        <div class="q-actions" style="margin-top:10px;">
+          <button class="btn btn-sm btn-danger lib-del-btn" data-song-id="${song.id}">🗑️ Delete</button>
+        </div>`;
+    } else {
+      div.innerHTML = `
+        <div class="qtitle">${escapeHtml(song.title || 'Untitled')}</div>
+        <div class="qsub">${escapeHtml(song.artist || 'Unknown artist')}${song.filename ? ' · '+escapeHtml(song.filename) : ''}</div>
+        ${playerHtml}
+        <div class="q-actions" style="margin-top:10px;">
+          <button class="btn btn-sm btn-danger lib-del-btn" data-song-id="${song.id}">🗑️ Delete</button>
+        </div>`;
+    }
+    list.appendChild(div);
+    wireLibraryPlayer(div, song);
+  }
+
+  // Delete buttons (available in both admin and member library views —
+  // deleting only affects this device's local copy)
+  $all('.lib-del-btn', list).forEach(btn => {
+    btn.addEventListener('click', ()=>{
+      const songId = btn.dataset.songId;
+      confirmModal('Delete this song from the library?', async ()=>{
+        try{
+          const song = songs.find(s=>s.id===songId);
+          if(song && song.audioId){
+            await idbDelete(STORE_AUDIO, song.audioId);
+          }
+          await idbDelete(STORE_SONGS, songId);
+          if(song && song.audioId && State.audioObjectUrls[song.audioId]){
+            delete State.audioObjectUrls[song.audioId];
+          }
+          State.selectedSongs.delete(songId);
+          showToast('Song deleted.', 'success');
+          renderSongLibrary(mode);
+        }catch(err){
+          console.error(err);
+          showToast('Delete failed.', 'error');
+        }
+      }, {confirmLabel:'DELETE'});
+    });
+  });
+
+  if(mode === 'admin'){
+
+    // Checkbox change handler
+    $all('.song-select-checkbox', list).forEach(cb => {
+      cb.addEventListener('change', ()=>{
+        const songId = cb.dataset.songId;
+        if(cb.checked){
+          State.selectedSongs.add(songId);
+        } else {
+          State.selectedSongs.delete(songId);
+        }
+      });
+    });
+  }
+}
+
+/* Wires up a single song-library card: play/pause, seek-by-tap progress
+   bar, repeat (loop) toggle, and a live current/duration time readout.
+   Only one song plays at a time across the whole app — starting this one
+   stops whatever else (library or quiz) was already playing, via the
+   shared State.currentPlayingAudio/Btn used by stopCurrentAudio(). */
+function wireLibraryPlayer(card, song){
+  const playBtn = card.querySelector('.lib-play-btn');
+  const bar = card.querySelector('.audio-bar');
+  const fill = card.querySelector('.audio-bar-fill');
+  const timeEl = card.querySelector('.audio-time');
+  const repeatBtn = card.querySelector('.lib-repeat-btn');
+  if(!playBtn) return;
+  let audioEl = null;
+
+  function updateTime(){
+    const cur = audioEl ? audioEl.currentTime : 0;
+    const dur = audioEl ? (audioEl.duration || 0) : 0;
+    if(timeEl) timeEl.textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
+    if(fill) fill.style.width = (dur ? Math.min(100, (cur/dur)*100) : 0) + '%';
+  }
+
+  async function ensureAudio(){
+    if(audioEl) return audioEl;
+    if(!song.audioId){ showToast('No audio for this song.', 'error'); return null; }
+    const url = await getAudioUrl(song.audioId);
+    if(!url){ showToast('Audio data missing.', 'error'); return null; }
+    audioEl = new Audio(url);
+    audioEl.preload = 'metadata';
+    audioEl.loop = !!(repeatBtn && repeatBtn.classList.contains('active'));
+    audioEl.addEventListener('loadedmetadata', updateTime);
+    audioEl.addEventListener('timeupdate', updateTime);
+    audioEl.addEventListener('ended', ()=>{
+      // Native looping (audioEl.loop) restarts playback without ever
+      // firing 'ended', so reaching here means the song actually finished.
+      playBtn.classList.remove('playing','loading');
+      playBtn.textContent = '▶';
+      if(fill) fill.style.width = '0%';
+      if(State.currentPlayingAudio === audioEl){
+        State.currentPlayingAudio = null;
+        State.currentPlayingBtn = null;
+      }
+    });
+    audioEl.addEventListener('error', ()=>{
+      showToast('This audio cannot be played by your browser.', 'error');
+      playBtn.classList.remove('playing','loading');
+      playBtn.textContent = '▶';
+    });
+    return audioEl;
+  }
+
+  playBtn.addEventListener('click', async ()=>{
+    const el = await ensureAudio();
+    if(!el) return;
+    if(State.currentPlayingAudio && State.currentPlayingAudio !== el){
+      stopCurrentAudio();
+    }
+    if(el.paused){
+      playBtn.classList.add('loading');
+      el.play().then(()=>{
+        playBtn.classList.remove('loading');
+        playBtn.classList.add('playing');
+        playBtn.textContent = '⏸';
+      }).catch(()=>{
+        playBtn.classList.remove('loading','playing');
+        playBtn.textContent = '▶';
+        showToast('Playback failed.', 'error');
+      });
+      State.currentPlayingAudio = el;
+      State.currentPlayingBtn = playBtn;
+    } else {
+      el.pause();
+      playBtn.classList.remove('playing');
+      playBtn.textContent = '▶';
+    }
+  });
+
+  if(bar){
+    bar.addEventListener('click', async (e)=>{
+      const el = await ensureAudio();
+      if(!el || !isFinite(el.duration) || !el.duration) return;
+      const rect = bar.getBoundingClientRect();
+      const pct = Math.min(1, Math.max(0, (e.clientX - rect.left)/rect.width));
+      el.currentTime = pct * el.duration;
+      updateTime();
+    });
+  }
+
+  if(repeatBtn){
+    repeatBtn.addEventListener('click', ()=>{
+      const active = repeatBtn.classList.toggle('active');
+      repeatBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      if(audioEl) audioEl.loop = active;
+    });
+  }
+}
+
+
+// Select All button
+$('#btn-lib-select-all').addEventListener('click', async ()=>{
+  const songs = await idbGetAll(STORE_SONGS);
+  if(songs.length === 0) return;
+  // If all songs are already selected, deselect all; otherwise select all
+  const allSelected = songs.every(s => State.selectedSongs.has(s.id));
+  if(allSelected){
+    State.selectedSongs.clear();
+  } else {
+    State.selectedSongs = new Set(songs.map(s => s.id));
+  }
+  // Re-render library to update checkboxes
+  renderSongLibrary('admin');
+});
+
+// Export Selected (opens modal with per-song download links)
+$('#btn-lib-export-selected').addEventListener('click', async ()=>{
+  const selectedIds = Array.from(State.selectedSongs);
+  if(selectedIds.length === 0){
+    showToast('Please select at least one song.', 'error');
+    return;
+  }
+  const allSongs = await idbGetAll(STORE_SONGS);
+  const selectedSongs = allSongs.filter(s => selectedIds.includes(s.id));
+  if(selectedSongs.length === 0){
+    showToast('Selected songs not found.', 'error');
+    return;
+  }
+
+  // Build modal body with download links for each song
+  let bodyHtml = `<p class="muted">Click each button to download the JSON file for that song.</p>`;
+  bodyHtml += `<div class="stack">`;
+  for(const song of selectedSongs){
+    bodyHtml += `
+      <div class="row-between">
+        <span>🎵 ${escapeHtml(song.title)}</span>
+        <button class="btn btn-sm btn-primary download-single-song-btn" data-song-id="${song.id}">⬇️ Download</button>
+      </div>`;
+  }
+  bodyHtml += `</div>`;
+
+  const modal = openModal({
+    title: `Export ${selectedSongs.length} Song${selectedSongs.length>1?'s':''}`,
+    bodyHtml,
+    buttons: [{label:'CLOSE', cls:'btn-ghost'}]
+  });
+
+  // Attach click handlers to download buttons
+  $all('.download-single-song-btn', modal).forEach(btn => {
+    btn.addEventListener('click', async ()=>{
+      const songId = btn.dataset.songId;
+      const song = selectedSongs.find(s => s.id === songId);
+      if(!song) return;
+      try{
+        const audioRec = await idbGet(STORE_AUDIO, song.audioId);
+        if(!audioRec || !audioRec.blob){
+          showToast('Audio missing for this song.', 'error');
+          return;
+        }
+        const audioB64 = await blobToBase64(audioRec.blob);
+        const songExport = {
+          exportedAt: new Date().toISOString(),
+          song: {
+            id: song.id,
+            title: song.title,
+            artist: song.artist,
+            filename: song.filename,
+            type: song.type,
+            audioId: song.audioId  // ✅ FIXED: include audioId
+          },
+          audio: {
+            id: audioRec.id,
+            filename: audioRec.filename,
+            type: audioRec.type,
+            data: audioB64
+          }
+        };
+        const json = JSON.stringify(songExport);
+        const blob = new Blob([json], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `song-${song.title.replace(/[^a-z0-9]/gi,'_').toLowerCase() || 'untitled'}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+        showToast(`Downloaded ${song.title}`, 'success');
+      }catch(err){
+        console.error(err);
+        showToast('Download failed.', 'error');
+      }
+    });
+  });
+});
+
+$('#btn-lib-add-song').addEventListener('click', ()=>{
+  const title = $('#lib-add-title').value.trim();
+  const artist = $('#lib-add-artist').value.trim();
+  if(!title){ showToast('Please enter a song title.', 'error'); return; }
+  $('#library-add-audio-input').click();
+});
+
+$('#library-add-audio-input').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const title = $('#lib-add-title').value.trim();
+  const artist = $('#lib-add-artist').value.trim();
+  if(!title){ showToast('Please enter a song title first.', 'error'); return; }
+
+  const audioId = genId('audio');
+  try{
+    await idbPut(STORE_AUDIO, {id: audioId, blob: file, filename: file.name, type: file.type || 'audio/mpeg'});
+    const song = {
+      id: genId('song'),
+      title,
+      artist,
+      audioId,
+      filename: file.name,
+      type: file.type || 'audio/mpeg',
+      addedAt: Date.now()
+    };
+    await idbPut(STORE_SONGS, song);
+    $('#lib-add-title').value = '';
+    $('#lib-add-artist').value = '';
+    showToast('Song added to library!', 'success');
+    renderSongLibrary('admin');
+  }catch(err){
+    console.error(err);
+    showToast('Failed to add song. Storage might be full.', 'error');
+  }
+  e.target.value = '';
+});
+
+$('#btn-lib-export').addEventListener('click', async ()=>{
+  showToast('Preparing song pack…');
+  try{
+    const songs = await idbGetAll(STORE_SONGS);
+    if(songs.length === 0){ showToast('No songs in library to export.', 'error'); return; }
+    const audioData = [];
+    for(const song of songs){
+      if(song.audioId){
+        const rec = await idbGet(STORE_AUDIO, song.audioId);
+        if(rec && rec.blob){
+          const b64 = await blobToBase64(rec.blob);
+          audioData.push({id: rec.id, filename: rec.filename, type: rec.type, data: b64});
+        }
+      }
+    }
+    const payload = { exportedAt: new Date().toISOString(), songs, audio: audioData };
+    const json = JSON.stringify(payload);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'song-pack.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    showToast('Song pack exported!', 'success');
+  }catch(err){
+    console.error(err);
+    showToast('Export failed.', 'error');
+  }
+});
+
+$('#btn-lib-import').addEventListener('click', ()=>{
+  $('#song-pack-file-input').click();
+});
+
+// NOTE: #song-pack-file-input listener already exists in Player Mode section.
+// It calls handleSongPackImport, which is defined below.
+
+async function handleSongPackImport(file, mode){
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+
+    // Normalize to a common format: { songs: [], audio: [] }
+    let songsToImport = [];
+    let audioToImport = [];
+
+    if(payload.songs && Array.isArray(payload.songs)){
+      // Bulk song pack format
+      songsToImport = payload.songs;
+      audioToImport = payload.audio || [];
+    } else if(payload.song && payload.audio){
+      // Single-song format (exported by "Export Selected")
+      songsToImport = [payload.song];
+      audioToImport = [payload.audio];
+    } else {
+      showToast('Invalid song pack file.', 'error');
+      return;
+    }
+
+    // Import audio first
+    for(const a of audioToImport){
+      if(!a.data) continue;
+      const blob = await base64ToBlob(a.data, a.type);
+      await idbPut(STORE_AUDIO, {id: a.id, filename: a.filename, type: a.type, blob});
+    }
+
+    // Import song records
+    for(const song of songsToImport){
+      if(!song.audioId){
+        // Older exports (before audioId was included in the song record)
+        // can produce a song entry with no link to its audio blob. Try to
+        // repair the link using whatever audio came bundled in this same
+        // file: if there's exactly one audio entry, it's almost certainly
+        // this song's; otherwise fall back to matching by filename.
+        let match = null;
+        if(audioToImport.length === 1){
+          match = audioToImport[0];
+        } else if(song.filename){
+          match = audioToImport.find(a => a.filename === song.filename);
+        }
+        if(match) song.audioId = match.id;
+      }
+      await idbPut(STORE_SONGS, song);
+    }
+
+    State.audioObjectUrls = {};
+    showToast('Song pack imported successfully!', 'success');
+    renderSongLibrary(mode);
+  }catch(err){
+    console.error(err);
+    if(err && (err.name === 'QuotaExceededError' || err.code === 22 || err.message.includes('quota'))){
+      showToast('Import failed: Not enough storage space. Delete some old songs or use smaller audio files.', 'error');
+    } else {
+      showToast('Import failed. The file may be corrupted or too large.', 'error');
+    }
+  }
+}
+
+/* ============================================================
+   INITIALIZATION
+   ============================================================ */
+async function init(){
+  const initStartedAt = Date.now();
+  const MIN_LOADING_MS = 1100; // keep the loading screen visible long enough to actually read
+
+  try{
+    State.db = await openDB();
+  }catch(err){
+    console.error('IndexedDB unavailable', err);
+    showToast('Audio storage is unavailable in this browser.', 'error');
+  }
+  State.competition = loadCompetition();
+  State.competition = Object.assign(defaultCompetition(), State.competition);
+  if(!State.competition.voucher){
+    State.competition.voucher = { amount:'', number:'', pin:'', expiry:'', claimPassword:'' };
+  }
+  if(!State.competition.adminPasswordHash){
+    State.competition.adminPasswordHash = await sha256Hex(DEFAULT_ADMIN_PASSWORD);
+  }
+  saveCompetition();
+  State.attempts = loadAttempts();
+  renderLandingInfo();
+
+  const completedId = getCompletedCompId();
+  if (completedId === State.competition.id) {
+    State.lockedChallenge = true;
+  } else {
+    State.lockedChallenge = false;
+  }
+
+  const savedName = getSavedPlayerName();
+  if(savedName){
+    const input = $('#input-playername');
+    if(input) input.value = savedName;
+  }
+
+  const remoteUrl = getRemoteUrl();
+  if(remoteUrl){
+    await fetchRemoteCompetition(remoteUrl);
+  }
+
+  // Remember whether this device previously had an admin session, but never
+  // use it to auto-open the dashboard on launch — the admin area is
+  // private, so the app always opens on the public home screen instead.
+  // Admin still has to tap ADMIN and enter the password to get in.
+  if (localStorage.getItem(LS_ADMIN_SESSION) === '1') {
+    State.isAdmin = true;
+  }
+
+  // Decide the start screen while still hidden behind the loading overlay.
+  // Normally this is the public home screen; a locked/completed challenge
+  // or a quiz already in progress still take you to their own screen
+  // exactly as before — it's only the admin auto-open that's gone.
+  if (State.lockedChallenge) {
+    showScreen('screen-voucher-claim');
+    showNextChallengeTeaser('claim');
+    $('#btn-back-to-results').style.display = 'none';
+    $('#btn-voucher-import').style.display = 'block';
+  } else {
+    const resumed = resumeSessionIfAny();
+    if(!resumed){
+      showScreen('screen-landing');
+      $('#btn-join').textContent = '🎧 JOIN COMPETITION';
+      $('#btn-join').disabled = false;
+    }
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (State.quiz.timerInterval) clearInterval(State.quiz.timerInterval);
+  });
+
+  // Hold the loading screen for a minimum, perceivable duration before
+  // revealing whichever screen was picked above, so it actually reads as
+  // "loading, then home" instead of an instant flash.
+  const elapsed = Date.now() - initStartedAt;
+  const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+  await new Promise(resolve => setTimeout(resolve, remaining));
+
+  const loadingOverlay = document.getElementById('app-loading-overlay');
+  if(loadingOverlay){
+    loadingOverlay.classList.add('hide');
+    setTimeout(()=> loadingOverlay.remove(), 400);
+  }
+}
+init();
+
+/* ============================================================
+   HILLTOPADS CONFIGURATION — everything lives here, one place.
+   ------------------------------------------------------------
+   Paste your real codes from HilltopAds → Publisher Panel →
+   Websites → your site → Ad Formats → Get Code.
+
+   HOW THIS WORKS (data-aware ads):
+   - If the device has NO connection, none of these ever fire —
+     the app just works normally, offline, with no broken ad
+     requests or errors.
+   - The moment the device HAS a connection — whether that's true
+     when the app opens, or becomes true later while the app is
+     already open — whichever ads are due are loaded then, for
+     real, so they track and earn properly. Nothing is faked or
+     replayed from a previous session: an ad impression only ever
+     happens at the moment it can actually be reported to
+     HilltopAds, which is the only way it can earn anything.
+   - This will NOT serve real ads while opened as a local file
+     (file://) — it needs to be hosted on a real https:// domain.
+============================================================ */
+const HILLTOPADS_POPUNDER_URL = '';       // <-- paste your Popunder script URL
+const HILLTOPADS_INPAGE_PUSH_URL = '';    // <-- paste your In-Page Push script URL
+const HILLTOPADS_NATIVE_CONFIG = {
+  'screen-landing': { slot: '#ad-slot-landing', containerId: 'container-XXXXXXX', scriptUrl: '' }, // <-- paste native script URL
+  'screen-results': { slot: '#ad-slot-results', containerId: 'container-YYYYYYY', scriptUrl: '' }  // <-- paste native script URL
+};
+
+let hilltopInPagePushLoaded = false;
+const hilltopNativeLoaded = {};
+
+function isOnlineNow(){
+  return typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
+}
+
+/* Popunder: waits for a click, but only actually fires once ever
+   per session, and only on a click that happens while online. If
+   someone's offline when they click, it just keeps waiting. */
+function tryLoadHilltopPopunder(){
+  if(!HILLTOPADS_POPUNDER_URL || sessionStorage.getItem('hta_popunder_loaded')){
+    document.removeEventListener('click', tryLoadHilltopPopunder);
+    return;
+  }
+  if(!isOnlineNow()) return;
+  sessionStorage.setItem('hta_popunder_loaded', '1');
+  const s = document.createElement('script');
+  s.async = true;
+  s.setAttribute('data-cfasync', 'false');
+  s.src = HILLTOPADS_POPUNDER_URL;
+  document.body.appendChild(s);
+  document.removeEventListener('click', tryLoadHilltopPopunder);
+}
+document.addEventListener('click', tryLoadHilltopPopunder);
+
+/* In-Page Push: loads once, as soon as there's a connection —
+   on open, or the moment connectivity returns. */
+function tryLoadHilltopInPagePush(){
+  if(hilltopInPagePushLoaded || !HILLTOPADS_INPAGE_PUSH_URL) return;
+  if(!isOnlineNow()) return;
+  hilltopInPagePushLoaded = true;
+  const s = document.createElement('script');
+  s.async = true;
+  s.setAttribute('data-cfasync', 'false');
+  s.src = HILLTOPADS_INPAGE_PUSH_URL;
+  document.head.appendChild(s);
+}
+
+/* Native ads: only load into a slot once, and only while online,
+   and only once that slot's screen has actually been shown. */
+function refreshHilltopAdsForScreen(screenId){
+  tryLoadHilltopInPagePush();
+  const cfg = HILLTOPADS_NATIVE_CONFIG[screenId];
+  if(!cfg || !cfg.scriptUrl || hilltopNativeLoaded[screenId]) return;
+  if(!isOnlineNow()) return;
+  const slot = document.querySelector(cfg.slot);
+  if(!slot) return;
+  hilltopNativeLoaded[screenId] = true;
+  slot.innerHTML = `<div id="${cfg.containerId}"></div>`;
+  const s = document.createElement('script');
+  s.async = true;
+  s.setAttribute('data-cfasync', 'false');
+  s.src = cfg.scriptUrl;
+  slot.appendChild(s);
+}
+
+/* The moment connectivity returns, pick up anything that was
+   waiting — including a native slot on whatever screen is
+   currently on view. */
+window.addEventListener('online', ()=>{
+  tryLoadHilltopInPagePush();
+  const activeScreen = document.querySelector('.screen.active');
+  if(activeScreen) refreshHilltopAdsForScreen(activeScreen.id);
+});
+</script>
+
+</body>
+</html>
