@@ -78,7 +78,7 @@ a{color:var(--violet);}
 @media (prefers-reduced-motion: reduce){
   .loading-spinner{animation-duration:1.6s;}
 }
-.screen{display:none; padding:20px 18px 40px; animation:fadeIn .35s ease;}
+.screen{display:none; padding:20px 18px 92px; animation:fadeIn .35s ease;}
 .screen.active{display:flex; flex-direction:column; flex:1;}
 @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
 @media (prefers-reduced-motion: reduce){
@@ -89,9 +89,9 @@ a{color:var(--violet);}
 /* ---------- Buttons ---------- */
 .btn{
   min-height:var(--tap);
-  border-radius:14px;
+  border-radius:12px;
   border:1px solid transparent;
-  font-size:16px;
+  font-size:15.5px;
   font-weight:600;
   padding:0 20px;
   cursor:pointer;
@@ -99,18 +99,19 @@ a{color:var(--violet);}
   align-items:center;
   justify-content:center;
   gap:8px;
-  transition:transform .12s ease, box-shadow .12s ease, background .15s ease, opacity .15s;
+  transition:transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, opacity .15s;
   width:100%;
-  letter-spacing:.2px;
+  letter-spacing:0;
 }
-.btn:active{transform:scale(.97);}
-.btn-primary{background:linear-gradient(135deg,var(--violet),#9b7bff); color:#fff; box-shadow:0 8px 24px -8px var(--violet-glow);}
-.btn-primary:hover{filter:brightness(1.06);}
-.btn-gold{background:linear-gradient(135deg,var(--amber),#ffd27a); color:#241705; box-shadow:0 8px 24px -8px rgba(255,182,39,.4);}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--violet); color:#fff; box-shadow:0 3px 10px -3px var(--violet-glow);}
+.btn-primary:hover{background:var(--violet-dim);}
+.btn-gold{background:linear-gradient(135deg,var(--amber),#f0a916); color:#241705; box-shadow:0 3px 10px -3px rgba(255,182,39,.35);}
 .btn-outline{background:transparent; border:1px solid var(--border); color:var(--text);}
-.btn-outline:hover{border-color:var(--violet);}
+.btn-outline:hover{border-color:var(--violet); color:var(--violet-dim);}
 .btn-ghost{background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border-soft);}
-.btn-danger{background:rgba(239,68,68,.08); color:var(--red); border:1px solid rgba(239,68,68,.25);}
+.btn-ghost:hover{border-color:var(--border); background:var(--bg-input);}
+.btn-danger{background:rgba(239,68,68,.08); color:var(--red); border:1px solid rgba(239,68,68,.2);}
 .btn-sm{min-height:38px; font-size:13.5px; padding:0 14px; width:auto;}
 .btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
 .btn-row{display:flex; gap:10px;}
@@ -154,9 +155,9 @@ a{color:var(--violet);}
 .switch input:checked + .track::after{transform:translateX(20px); background:#fff;}
 
 /* ---------- Logo / hero ---------- */
-.logo-emoji{font-size:56px; line-height:1;}
-.brand{font-size:30px; font-weight:800; letter-spacing:-.5px; color:var(--text);}
-.tagline{color:var(--text-dim); font-size:15px;}
+.logo-emoji{font-size:48px; line-height:1;}
+.brand{font-size:28px; font-weight:700; letter-spacing:-.3px; color:var(--text);}
+.tagline{color:var(--text-faint); font-size:14.5px; letter-spacing:.1px;}
 .gradient-text{background:linear-gradient(135deg,var(--violet),var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent;}
 
 /* ---------- Info grid on landing ---------- */
@@ -218,6 +219,7 @@ a{color:var(--violet);}
 .stat-box .v{font-size:19px; font-weight:800; color:var(--text);}
 .stat-box .k{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;}
 .result-id{font-family:var(--mono); font-size:15px; letter-spacing:1px; background:var(--bg-input); border:1px dashed var(--border); border-radius:10px; padding:8px 12px; margin-top:14px; display:inline-block; color:var(--text-dim);}
+.result-verify-code{font-family:var(--mono); font-size:16px; font-weight:800; letter-spacing:1px; background:rgba(124,92,252,.08); border:1.5px dashed var(--violet); border-radius:10px; padding:9px 14px; margin-top:8px; display:inline-block; color:var(--violet-dim);}
 .result-share-hint{font-size:13px; color:var(--amber-dim); margin-top:12px; font-weight:600;}
 
 /* ---------- Voucher Claim Portal ---------- */
@@ -238,7 +240,7 @@ a{color:var(--violet);}
 
 /* ---------- Admin ---------- */
 .topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-soft); position:sticky; top:0; background:var(--bg-raised); backdrop-filter:blur(8px); z-index:20; color:var(--text);}
-.topbar-title{font-weight:800; font-size:16px; display:flex; align-items:center; gap:8px;}
+.topbar-title{font-weight:700; font-size:15.5px; display:flex; align-items:center; gap:8px;}
 .icon-btn{width:40px; height:40px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-soft); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px;}
 
 .stat-cards{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -247,11 +249,11 @@ a{color:var(--violet);}
 .stat-card .lbl{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;}
 
 .admin-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-.action-tile{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:16px 10px; text-align:center; cursor:pointer; transition:border-color .15s, transform .12s; box-shadow:var(--shadow);}
-.action-tile:active{transform:scale(.96);}
+.action-tile{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:12px; padding:16px 10px; text-align:center; cursor:pointer; transition:border-color .15s, transform .12s; box-shadow:0 1px 3px rgba(15,20,30,.05);}
+.action-tile:active{transform:scale(.97);}
 .action-tile:hover{border-color:var(--violet);}
-.action-tile .ic{font-size:22px; margin-bottom:6px;}
-.action-tile .lbl{font-size:12.5px; font-weight:700; color:var(--text-dim);}
+.action-tile .ic{font-size:20px; margin-bottom:6px;}
+.action-tile .lbl{font-size:12px; font-weight:600; color:var(--text-dim); letter-spacing:.1px;}
 
 .q-list-item{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow);}
 .q-list-item .qtitle{font-weight:700; font-size:14.5px; margin-bottom:6px; color:var(--text);}
@@ -279,7 +281,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 .tab-btn{padding:8px 14px; border-radius:999px; background:var(--bg-card); border:1px solid var(--border-soft); color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; flex:none;}
 .tab-btn.active{background:var(--violet); color:#fff; border-color:var(--violet);}
 
-.toast-wrap{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; width:calc(100% - 36px); max-width:520px; align-items:center;}
+.toast-wrap{position:fixed; bottom:84px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; width:calc(100% - 36px); max-width:520px; align-items:center;}
 .toast{background:var(--bg-raised); border:1px solid var(--border); color:var(--text); padding:12px 16px; border-radius:12px; font-size:14px; box-shadow:var(--shadow); animation:toastIn .25s ease; max-width:100%;}
 .toast.success{border-color:rgba(13,148,136,.4);}
 .toast.error{border-color:rgba(239,68,68,.4);}
@@ -306,28 +308,43 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 .empty-state{text-align:center; padding:30px 10px; color:var(--text-faint);}
 .empty-state .ic{font-size:34px; margin-bottom:8px;}
 
-/* Global Home Button (bottom right) */
-.global-home-btn{
+/* Bottom navigation bar (fixed, app-width) */
+.bottom-nav{
   position:fixed;
-  bottom:20px;
-  right:16px;
-  width:48px;
-  height:48px;
-  border-radius:50%;
-  background:var(--violet);
-  border:1px solid var(--violet);
-  color:#fff;
-  font-size:22px;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:560px;
+  height:60px;
+  padding-bottom:env(safe-area-inset-bottom, 0);
+  background:var(--bg-card, #fff);
+  border-top:1px solid var(--border-soft);
   display:flex;
+  align-items:stretch;
+  justify-content:center;
+  z-index:150;
+  box-shadow:0 -2px 14px rgba(15,20,30,.06);
+}
+.bottom-nav-item{
+  display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+  gap:2px;
+  width:72px;
+  height:100%;
+  border:none;
+  background:none;
+  color:var(--text-faint);
   cursor:pointer;
-  z-index:1000;
-  box-shadow:0 4px 12px rgba(124,92,252,.4);
-  transition:background .15s, transform .1s, opacity .2s;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .15s;
 }
-.global-home-btn:active{transform:scale(.92);}
-.global-home-btn:hover{background:var(--violet-dim);}
+.bottom-nav-item svg{width:24px; height:24px; transition:transform .12s;}
+.bottom-nav-item span{font-size:11px; font-weight:600; letter-spacing:.2px;}
+.bottom-nav-item:active svg{transform:scale(.88);}
+.bottom-nav-item.active, .bottom-nav-item:hover{color:var(--violet);}
 
 @media (min-width:640px){
   .app{max-width:600px;}
@@ -349,7 +366,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
   <section class="screen active" id="screen-landing">
     <div class="center-col" style="padding-top:6vh;">
       <div class="logo-emoji">🎵</div>
-      <h1 class="brand">MUSIC <span class="gradient-text">CHALLENGE</span></h1>
+      <h1 class="brand">Music <span class="gradient-text">Challenge</span></h1>
       <p class="tagline">Listen. Guess. Score. Win.</p>
 
       <div class="info-grid" id="landing-info-grid" style="margin-top:8px;"></div>
@@ -357,11 +374,11 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
       <div class="card" id="next-challenge-card-landing" style="display:none; margin-top:14px; width:100%; text-align:left;"></div>
 
       <div class="stack" style="width:100%; margin-top:10px;">
-        <button class="btn btn-primary" id="btn-join" style="height:56px; font-size:17px;">🎧 JOIN COMPETITION</button>
-        <button class="btn btn-ghost" id="btn-open-song-library">🎵 MY SONG LIBRARY</button>
-        <button class="btn btn-ghost" id="btn-import-song-pack">📀 IMPORT SONG PACK</button>
-        <button class="btn btn-ghost" id="btn-admin">🛠 ADMIN</button>
-        <button class="btn btn-ghost" id="btn-member-import">📥 IMPORT NEW CHALLENGE</button>
+        <button class="btn btn-primary" id="btn-join" style="height:56px; font-size:17px;">🎧 Join Competition</button>
+        <button class="btn btn-ghost" id="btn-open-song-library">🎵 My Song Library</button>
+        <button class="btn btn-ghost" id="btn-import-song-pack">📀 Import Song Pack</button>
+        <button class="btn btn-ghost" id="btn-admin">🛠 Admin</button>
+        <button class="btn btn-ghost" id="btn-member-import">📥 Import New Challenge</button>
       </div>
       <p class="faint" style="margin-top:18px;">Standalone client-side app · works offline once loaded</p>
 
@@ -386,7 +403,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <input type="text" id="input-playername" placeholder="Your name" maxlength="24" autocomplete="off">
         </div>
         <div class="hint-error" id="name-error"></div>
-        <button class="btn btn-primary" id="btn-name-continue">CONTINUE</button>
+        <button class="btn btn-primary" id="btn-name-continue">Continue</button>
       </div>
     </div>
   </section>
@@ -407,7 +424,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <input type="password" id="input-comppassword" placeholder="Enter password" autocomplete="off">
         </div>
         <div class="hint-error" id="password-error"></div>
-        <button class="btn btn-primary" id="btn-unlock">UNLOCK COMPETITION</button>
+        <button class="btn btn-primary" id="btn-unlock">Unlock Competition</button>
       </div>
     </div>
   </section>
@@ -417,7 +434,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
   ============================================================ -->
   <section class="screen" id="screen-instructions">
     <div class="stack">
-      <h2>HOW TO PLAY</h2>
+      <h2>How to Play</h2>
       <div class="card stack">
         <div class="row"><span>1️⃣</span><span>Listen to the song that plays automatically.</span></div>
         <div class="row"><span>2️⃣</span><span>Choose the answer you think is correct.</span></div>
@@ -428,7 +445,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         <div class="row"><span>7️⃣</span><span>Send your screenshot to the competition group or private inbox.</span></div>
       </div>
       <div class="card" id="instr-timer-card"></div>
-      <button class="btn btn-primary" id="btn-start-competition" style="height:56px; font-size:17px;">▶ START COMPETITION</button>
+      <button class="btn btn-primary" id="btn-start-competition" style="height:56px; font-size:17px;">▶ Start Competition</button>
     </div>
   </section>
 
@@ -448,7 +465,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
     <p class="muted" style="margin:14px 0 8px;">Which one is correct?</p>
     <div id="quiz-options"></div>
     <div style="margin-top:6px;">
-      <button class="btn btn-primary" id="btn-submit-answer" style="height:54px; font-size:16px;" disabled>SUBMIT ANSWER</button>
+      <button class="btn btn-primary" id="btn-submit-answer" style="height:54px; font-size:16px;" disabled>Submit Answer</button>
     </div>
   </section>
 
@@ -473,20 +490,21 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <div class="stat-box"><div class="v" id="result-time">00:00</div><div class="k">⏱ Time</div></div>
         </div>
         <div class="result-id" id="result-id">RESULT ID: —</div>
-        <div class="result-share-hint">📸 Take a screenshot and send to the organizer</div>
+        <div class="result-verify-code" id="result-verify-code">VERIFY CODE: —</div>
+        <div class="result-share-hint">📸 Take a screenshot with the Verify Code visible and send to the organizer</div>
       </div>
 
-      <div class="disclaimer">📸 <strong>TAKE A SCREENSHOT OF THIS RESULT</strong><br>Then send your screenshot to the competition group to claim your prize.</div>
+      <div class="disclaimer">📸 <strong>Take a screenshot of this result</strong><br>Make sure the <strong>Verify Code</strong> is visible in the screenshot, then send it to the competition group to claim your prize. The code is unique to your exact score — the organizer checks it, so an edited or AI-generated screenshot won't pass.</div>
 
-      <button class="btn btn-outline" id="btn-screenshot-help">📸 SHOW SCREENSHOT INSTRUCTIONS</button>
+      <button class="btn btn-outline" id="btn-screenshot-help">📸 Show Screenshot Instructions</button>
 
-      <button class="btn btn-primary" id="btn-claim-voucher" style="margin-top:10px; height:56px; font-size:18px;">NEXT →</button>
+      <button class="btn btn-primary" id="btn-claim-voucher" style="margin-top:10px; height:56px; font-size:18px;">Next →</button>
 
       <div class="divider"></div>
 
       <div class="btn-row">
-        <button class="btn btn-outline" id="btn-share-result">SHARE RESULT</button>
-        <button class="btn btn-outline" id="btn-share-whatsapp">💬 WHATSAPP</button>
+        <button class="btn btn-outline" id="btn-share-result">Share Result</button>
+        <button class="btn btn-outline" id="btn-share-whatsapp">💬 WhatsApp</button>
       </div>
       <div id="leaderboard-block" class="card hidden">
         <h3 style="margin-bottom:10px;">🏅 LEADERBOARD</h3>
@@ -497,8 +515,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
            see HILLTOPADS CONFIGURATION near the bottom of the script. -->
       <div id="ad-slot-results" style="width:100%;"></div>
 
-      <button class="btn btn-ghost" id="btn-play-again">🔁 PLAY AGAIN</button>
-      <button class="btn btn-ghost" id="btn-results-home">🏠 BACK TO HOME</button>
+      <button class="btn btn-ghost" id="btn-play-again">🔁 Play Again</button>
+      <button class="btn btn-ghost" id="btn-results-home">🏠 Back to Home</button>
     </div>
   </section>
 
@@ -509,7 +527,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
     <div class="stack" style="justify-content:center; flex:1;">
       <div class="voucher-card">
         <div class="voucher-lock" id="voucher-lock-icon">🔒</div>
-        <h2 id="voucher-portal-title">VOUCHER LOCKED</h2>
+        <h2 id="voucher-portal-title">Voucher Locked</h2>
         <p class="voucher-locked-text" id="voucher-greeting">Your voucher details are protected.</p>
         <div class="card" style="background:var(--bg-input); text-align:left; padding:16px;">
           <p class="faint" style="margin-bottom:8px;"><strong>HOW TO UNLOCK:</strong></p>
@@ -523,10 +541,10 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <input type="password" id="voucher-claim-password" placeholder="Password" autocomplete="off" class="voucher-input">
         </div>
         <div class="hint-error" id="voucher-password-error"></div>
-        <button class="btn btn-primary" id="btn-unlock-voucher" style="font-size:18px; height:56px;">UNLOCK VOUCHER</button>
+        <button class="btn btn-primary" id="btn-unlock-voucher" style="font-size:18px; height:56px;">Unlock Voucher</button>
         <div class="card" id="next-challenge-card-claim" style="display:none; margin-top:14px; text-align:left;"></div>
-        <button class="btn btn-ghost" id="btn-back-to-results" style="margin-top:10px; display:none;">← BACK TO RESULTS</button>
-        <button class="btn btn-ghost" id="btn-voucher-import" style="margin-top:10px; display:none;">📥 IMPORT NEW CHALLENGE</button>
+        <button class="btn btn-ghost" id="btn-back-to-results" style="margin-top:10px; display:none;">← Back to Results</button>
+        <button class="btn btn-ghost" id="btn-voucher-import" style="margin-top:10px; display:none;">📥 Import New Challenge</button>
       </div>
     </div>
   </section>
@@ -546,10 +564,10 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         </div>
         <div class="voucher-number" id="voucher-number">VOUCHER NUMBER: —</div>
         <p class="muted" style="margin-top:4px;" id="voucher-pin-display">PIN: —</p>
-        <button class="btn btn-outline copy-btn" id="btn-copy-voucher">📋 COPY VOUCHER NUMBER</button>
-        <button class="btn btn-ghost copy-btn" id="btn-back-to-results-unlocked">← BACK TO RESULTS</button>
+        <button class="btn btn-outline copy-btn" id="btn-copy-voucher">📋 Copy Voucher Number</button>
+        <button class="btn btn-ghost copy-btn" id="btn-back-to-results-unlocked">← Back to Results</button>
         <div class="card" id="next-challenge-card-unlocked" style="display:none; margin-top:14px; text-align:left;"></div>
-        <button class="btn btn-ghost" id="btn-voucher-import-unlocked" style="margin-top:10px; display:none;">📥 IMPORT NEW CHALLENGE</button>
+        <button class="btn btn-ghost" id="btn-voucher-import-unlocked" style="margin-top:10px; display:none;">📥 Import New Challenge</button>
       </div>
     </div>
   </section>
@@ -571,7 +589,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
   ============================================================ -->
   <section class="screen" id="screen-admin-dashboard">
     <div class="topbar" style="margin:-20px -18px 18px;">
-      <div class="topbar-title">🎵 MUSIC CHALLENGE ADMIN</div>
+      <div class="topbar-title">🎵 Music Challenge Admin</div>
       <button class="icon-btn" id="btn-admin-logout" aria-label="Log out">⎋</button>
     </div>
     <div class="stack">
@@ -583,16 +601,29 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
       </div>
 
       <div class="admin-grid">
-        <div class="action-tile" data-nav="screen-admin-question-editor" data-action="new-question"><div class="ic">➕</div><div class="lbl">CREATE QUESTION</div></div>
-        <div class="action-tile" data-nav="screen-admin-questions"><div class="ic">📋</div><div class="lbl">MANAGE QUESTIONS</div></div>
-        <div class="action-tile" data-nav="screen-admin-library"><div class="ic">🎵</div><div class="lbl">SONG LIBRARY</div></div>
-        <div class="action-tile" data-nav="screen-admin-settings"><div class="ic">⚙️</div><div class="lbl">SETTINGS</div></div>
-        <div class="action-tile" data-nav="screen-admin-results"><div class="ic">📊</div><div class="lbl">VIEW RESULTS</div></div>
-        <div class="action-tile" id="tile-export"><div class="ic">📤</div><div class="lbl">EXPORT (BACKUP)</div></div>
-        <div class="action-tile" id="tile-export-members"><div class="ic">📤</div><div class="lbl">EXPORT FOR MEMBERS</div></div>
-        <div class="action-tile" id="tile-import"><div class="ic">📥</div><div class="lbl">IMPORT</div></div>
-        <div class="action-tile" id="tile-preview"><div class="ic">👁️</div><div class="lbl">PREVIEW AS PLAYER</div></div>
-        <div class="action-tile" id="tile-toggle-status"><div class="ic">🔒</div><div class="lbl" id="tile-toggle-status-label">CLOSE COMPETITION</div></div>
+        <div class="action-tile" data-nav="screen-admin-question-editor" data-action="new-question"><div class="ic">➕</div><div class="lbl">Create Question</div></div>
+        <div class="action-tile" data-nav="screen-admin-questions"><div class="ic">📋</div><div class="lbl">Manage Questions</div></div>
+        <div class="action-tile" data-nav="screen-admin-library"><div class="ic">🎵</div><div class="lbl">Song Library</div></div>
+        <div class="action-tile" data-nav="screen-admin-settings"><div class="ic">⚙️</div><div class="lbl">Settings</div></div>
+        <div class="action-tile" data-nav="screen-admin-results"><div class="ic">📊</div><div class="lbl">View Results</div></div>
+        <div class="action-tile" id="tile-export"><div class="ic">📤</div><div class="lbl">Export (Backup)</div></div>
+        <div class="action-tile" id="tile-export-members"><div class="ic">📤</div><div class="lbl">Export for Members</div></div>
+        <div class="action-tile" id="tile-import"><div class="ic">📥</div><div class="lbl">Import</div></div>
+        <div class="action-tile" id="tile-preview"><div class="ic">👁️</div><div class="lbl">Preview as Player</div></div>
+        <div class="action-tile" id="tile-toggle-status"><div class="ic">🔒</div><div class="lbl" id="tile-toggle-status-label">Close Competition</div></div>
+      </div>
+
+      <div class="card" style="border-color:rgba(124,92,252,.35);">
+        <h3 style="margin-bottom:6px;">🕵️ Verify a Screenshot</h3>
+        <p class="muted" style="margin-bottom:8px;">Type in exactly what's shown in the player's screenshot. A genuine result recomputes the same Verify Code — a faked or AI-generated screenshot can't, since it depends on your competition's own password.</p>
+        <div class="field"><label>Player Name (as shown)</label><input type="text" id="vfy-name" placeholder="e.g. Thabo"></div>
+        <div class="row" style="gap:10px;">
+          <div class="field" style="flex:1;"><label>Correct Answers</label><input type="number" id="vfy-correct" min="0" placeholder="e.g. 4"></div>
+          <div class="field" style="flex:1;"><label>Total Questions</label><input type="number" id="vfy-total" min="0" placeholder="e.g. 5"></div>
+        </div>
+        <div class="field"><label>Verify Code from screenshot</label><input type="text" id="vfy-code" placeholder="e.g. A1B2-C3D4" style="text-transform:uppercase;"></div>
+        <button class="btn btn-primary" id="btn-verify-code">Check Code</button>
+        <div id="vfy-result" style="margin-top:10px; font-weight:700; font-size:15px;"></div>
       </div>
 
       <div class="card">
@@ -604,8 +635,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <div class="field"><label>Expiry Date</label><input type="text" id="vset-expiry" placeholder="e.g. 30 September 2026"></div>
           <div class="field"><label>Voucher Claim Password</label><input type="text" id="vset-claim-password" placeholder="Set claim password"></div>
           <div class="btn-row">
-            <button class="btn btn-primary" id="btn-save-voucher">SAVE VOUCHER</button>
-            <button class="btn btn-danger" id="btn-clear-voucher">CLEAR</button>
+            <button class="btn btn-primary" id="btn-save-voucher">Save Voucher</button>
+            <button class="btn btn-danger" id="btn-clear-voucher">Clear</button>
           </div>
         </div>
       </div>
@@ -618,15 +649,15 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <input type="text" id="remote-url-input" placeholder="https://example.com/competition.json">
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="btn-save-remote-url">SAVE URL</button>
-          <button class="btn btn-ghost" id="btn-check-updates">CHECK FOR UPDATES</button>
+          <button class="btn btn-primary" id="btn-save-remote-url">Save URL</button>
+          <button class="btn btn-ghost" id="btn-check-updates">Check for Updates</button>
         </div>
       </div>
 
       <div class="card">
         <h3 style="margin-bottom:6px;">🧙 New here?</h3>
         <p class="muted" style="margin-bottom:12px;">Use the guided wizard to set up your competition step by step.</p>
-        <button class="btn btn-primary" data-nav="screen-admin-wizard">CREATE NEW COMPETITION (WIZARD)</button>
+        <button class="btn btn-primary" data-nav="screen-admin-wizard">Create New Competition (Wizard)</button>
       </div>
 
       <div class="card" style="border-color:rgba(255,182,39,.3);">
@@ -659,8 +690,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-ghost btn-sm" id="btn-generate-pw" type="button">🎲 GENERATE PASSWORD</button>
-        <button class="btn btn-ghost btn-sm" id="btn-copy-pw" type="button">📋 COPY PASSWORD</button>
+        <button class="btn btn-ghost btn-sm" id="btn-generate-pw" type="button">🎲 Generate Password</button>
+        <button class="btn btn-ghost btn-sm" id="btn-copy-pw" type="button">📋 Copy Password</button>
       </div>
       <p class="faint">This password is never shown to participants or on the results screen.</p>
 
@@ -730,18 +761,18 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         <p class="faint" style="margin-top:2px;">A short hint shown alongside the countdown to build hype.</p>
       </div>
 
-      <button class="btn btn-primary" id="btn-save-settings" style="margin-top:6px;">💾 SAVE SETTINGS</button>
+      <button class="btn btn-primary" id="btn-save-settings" style="margin-top:6px;">💾 Save Settings</button>
 
       <div class="divider"></div>
       <h3>Admin password</h3>
       <div class="field"><label>Change admin password</label><input type="password" id="set-new-adminpw" placeholder="New admin password" autocomplete="off"></div>
-      <button class="btn btn-outline" id="btn-change-adminpw">CHANGE ADMIN PASSWORD</button>
+      <button class="btn btn-outline" id="btn-change-adminpw">Change Admin Password</button>
 
       <div class="card" style="border-color:rgba(239,68,68,.3); margin-top:10px;">
         <h3 style="color:var(--red); margin-bottom:8px;">Danger zone</h3>
         <div class="stack">
-          <button class="btn btn-danger" id="btn-reset-attempts">RESET ALL PARTICIPANT RESULTS</button>
-          <button class="btn btn-danger" id="btn-reset-everything">RESET EVERYTHING</button>
+          <button class="btn btn-danger" id="btn-reset-attempts">Reset All Participant Results</button>
+          <button class="btn btn-danger" id="btn-reset-everything">Reset Everything</button>
         </div>
       </div>
     </div>
@@ -759,7 +790,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
       <div class="field"><input type="text" id="q-search" placeholder="🔎 Search questions..."></div>
       <p class="muted" id="q-count-label">0 QUESTIONS</p>
       <div id="q-list"></div>
-      <button class="btn btn-primary" id="btn-add-question-from-list">➕ ADD QUESTION</button>
+      <button class="btn btn-primary" id="btn-add-question-from-list">➕ Add Question</button>
     </div>
   </section>
 
@@ -799,8 +830,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 
       <div class="hint-error" id="qed-error"></div>
       <div class="btn-row">
-        <button class="btn btn-ghost" id="btn-qed-duplicate">⧉ DUPLICATE</button>
-        <button class="btn btn-primary" id="btn-qed-save">💾 SAVE QUESTION</button>
+        <button class="btn btn-ghost" id="btn-qed-duplicate">⧉ Duplicate</button>
+        <button class="btn btn-primary" id="btn-qed-save">💾 Save Question</button>
       </div>
     </div>
   </section>
@@ -840,8 +871,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
     <div class="stepper" id="wizard-stepper"></div>
     <div id="wizard-body" class="stack"></div>
     <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-ghost" id="wizard-prev">BACK</button>
-      <button class="btn btn-primary" id="wizard-next">NEXT</button>
+      <button class="btn btn-ghost" id="wizard-prev">Back</button>
+      <button class="btn btn-primary" id="wizard-next">Next</button>
     </div>
   </section>
 
@@ -858,16 +889,16 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
       <div class="card">
         <div class="field"><label>Song title</label><input type="text" id="lib-add-title" placeholder="e.g. Waka Waka"></div>
         <div class="field"><label>Artist</label><input type="text" id="lib-add-artist" placeholder="e.g. Shakira"></div>
-        <button class="btn btn-primary" id="btn-lib-add-song">🎧 ADD SONG TO LIBRARY</button>
+        <button class="btn btn-primary" id="btn-lib-add-song">🎧 Add Song to Library</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-outline" id="btn-lib-export">📤 EXPORT SONG PACK</button>
-        <button class="btn btn-outline" id="btn-lib-import">📥 IMPORT SONG PACK</button>
+        <button class="btn btn-outline" id="btn-lib-export">📤 Export Song Pack</button>
+        <button class="btn btn-outline" id="btn-lib-import">📥 Import Song Pack</button>
       </div>
       <!-- NEW: Selection and per-song export -->
       <div class="btn-row" style="margin-top:4px;">
-        <button class="btn btn-ghost btn-sm" id="btn-lib-select-all">✅ SELECT ALL</button>
-        <button class="btn btn-primary btn-sm" id="btn-lib-export-selected">📤 EXPORT SELECTED</button>
+        <button class="btn btn-ghost btn-sm" id="btn-lib-select-all">✅ Select All</button>
+        <button class="btn btn-primary btn-sm" id="btn-lib-export-selected">📤 Export Selected</button>
       </div>
       <div id="lib-admin-list" class="stack"></div>
       <div class="empty-state hidden" id="lib-admin-empty"><div class="ic">🎵</div>No songs in your library yet.</div>
@@ -900,8 +931,13 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 <!-- Hidden file input for admin adding a single song to the library -->
 <input type="file" id="library-add-audio-input" accept="audio/*" class="hidden">
 
-<!-- Global Home Button (bottom right) -->
-<button class="global-home-btn" id="global-home-btn" title="Home">🏠</button>
+<!-- Global bottom navigation bar -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" id="global-home-btn" title="Home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    <span>Home</span>
+  </button>
+</nav>
 
 <div class="toast-wrap" id="toast-wrap"></div>
 
@@ -1027,6 +1063,23 @@ async function sha256Hex(text){
     for(let i=0;i<text.length;i++){ h = (Math.imul(31,h) + text.charCodeAt(i))|0; }
     return 'fallback_' + Math.abs(h).toString(16);
   }
+}
+// Ties a result to an unforgeable code so a faked/AI-generated screenshot
+// can't be used to claim a prize: it's a hash of the exact result numbers
+// PLUS the competition's own admin password hash, a value that only ever
+// lives in this competition's data and is never shown to players. Anyone
+// can see the formula (it's client-side JS), but without that secret they
+// cannot compute a code that matches a made-up score — they'd need the
+// organizer's password. The organizer re-checks a submitted code from the
+// "Verify a Screenshot" tool in the admin dashboard, which recomputes it
+// locally using that same secret.
+async function computeVerifyCode(competitionId, playerName, correct, total){
+  const secret = (State.competition && State.competition.adminPasswordHash) || '';
+  const normalizedName = (playerName || '').trim().toLowerCase();
+  const raw = `${competitionId}|${normalizedName}|${correct}|${total}|${secret}`;
+  const hex = await sha256Hex(raw);
+  const code = hex.replace(/[^a-f0-9]/g,'').slice(0,8).toUpperCase() || 'UNKNOWN0';
+  return code.slice(0,4) + '-' + code.slice(4,8);
 }
 function genRandomPassword(len=8){
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
@@ -1196,6 +1249,38 @@ function showToast(msg, type){
   wrap.appendChild(t);
   setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 3200);
 }
+// Copies text to the clipboard, working around environments where the
+// modern Clipboard API is missing or blocked (no secure context — e.g. a
+// plain http:// page, or the file opened directly from local/device
+// storage rather than served over https). Falls back to the older
+// execCommand approach via a temporary offscreen textarea.
+async function copyTextToClipboard(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{
+      await navigator.clipboard.writeText(text);
+      return true;
+    }catch(err){
+      // fall through to the legacy fallback below
+    }
+  }
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  }catch(err){
+    return false;
+  }
+}
 function fmtTime(totalSeconds){
   totalSeconds = Math.max(0, Math.round(totalSeconds));
   const m = Math.floor(totalSeconds/60).toString().padStart(2,'0');
@@ -1243,8 +1328,8 @@ function confirmModal(message, onConfirm, opts){
     title: opts.title || 'Are you sure?',
     bodyHtml: `<p class="muted">${escapeHtml(message)}</p>`,
     buttons: [
-      {label:'CANCEL', cls:'btn-ghost'},
-      {label: opts.confirmLabel || 'CONFIRM', cls:'btn-danger', onClick:onConfirm}
+      {label:'Cancel', cls:'btn-ghost'},
+      {label: opts.confirmLabel || 'Confirm', cls:'btn-danger', onClick:onConfirm}
     ]
   });
 }
@@ -1540,7 +1625,7 @@ function renderLandingInfo(){
 function updateLandingForLocked(){
   const joinBtn = $('#btn-join');
   if (joinBtn) {
-    joinBtn.textContent = '✅ CHALLENGE COMPLETED';
+    joinBtn.textContent = '✅ Challenge Completed';
     joinBtn.disabled = true;
   }
   showNextChallengeTeaser('landing');
@@ -1552,7 +1637,7 @@ $('#global-home-btn').addEventListener('click', ()=>{
   } else {
     const joinBtn = $('#btn-join');
     if (joinBtn) {
-      joinBtn.textContent = '🎧 JOIN COMPETITION';
+      joinBtn.textContent = '🎧 Join Competition';
       joinBtn.disabled = false;
     }
     hideNextChallengeTeaser('landing');
@@ -1595,7 +1680,7 @@ $('#member-import-file-input').addEventListener('change', (e)=>{
   if(!file) return;
   confirmModal('Importing a new challenge will replace the current competition and reset your completion status. Continue?', ()=>{
     handleMemberImport(file);
-  }, {confirmLabel:'IMPORT', title:'Import New Challenge?'});
+  }, {confirmLabel:'Import', title:'Import New Challenge?'});
   e.target.value = '';
 });
 
@@ -1798,7 +1883,7 @@ function renderQuestion(){
   });
 
   $('#btn-submit-answer').disabled = true;
-  $('#btn-submit-answer').textContent = (idx === total-1) ? 'SUBMIT & FINISH' : 'SUBMIT ANSWER';
+  $('#btn-submit-answer').textContent = (idx === total-1) ? 'Submit & Finish' : 'Submit Answer';
 }
 
 function selectOption(optId){
@@ -1853,7 +1938,7 @@ function startTimerIfNeeded(){
   State.quiz.timerInterval = setInterval(tick, 1000);
 }
 
-function finishQuiz(){
+async function finishQuiz(){
   clearInterval(State.quiz.timerInterval);
   stopCurrentAudio();
   _currentAutoPlayFn = null;
@@ -1866,10 +1951,12 @@ function finishQuiz(){
   const pct = c.questions.length ? Math.round((correctCount / c.questions.length) * 100) : 0;
   const completionSeconds = (Date.now() - State.quiz.startTime) / 1000;
   const resultId = genResultId();
+  const playerName = State.quiz.playerName || 'Player';
+  const verifyCode = await computeVerifyCode(c.id, playerName, correctCount, c.questions.length);
 
   const attempt = {
     id: genId('att'),
-    playerName: State.quiz.playerName || 'Player',
+    playerName,
     score, maxScore,
     correct: correctCount,
     incorrect: incorrectCount,
@@ -1877,6 +1964,7 @@ function finishQuiz(){
     percentage: pct,
     completionTime: Math.round(completionSeconds),
     resultId,
+    verifyCode,
     timestamp: Date.now()
   };
 
@@ -1903,6 +1991,8 @@ function renderResults(attempt){
   $('#result-accuracy').textContent = attempt.percentage + '%';
   $('#result-time').textContent = fmtTime(attempt.completionTime);
   $('#result-id').textContent = 'RESULT ID: ' + attempt.resultId;
+  const verifyEl = $('#result-verify-code');
+  if(verifyEl) verifyEl.textContent = 'VERIFY CODE: ' + (attempt.verifyCode || '—');
   const alreadyAttempted = c.oneAttemptPerDevice && localStorage.getItem(LS_DEVICE_ATTEMPTED) === c.id;
   $('#btn-play-again').classList.toggle('hidden', !c.allowReplay || alreadyAttempted);
 
@@ -1923,7 +2013,7 @@ function renderResults(attempt){
 /* Voucher Claim Handlers */
 $('#btn-claim-voucher').addEventListener('click', ()=>{
   const name = State.quiz.playerName || getSavedPlayerName() || 'Player';
-  $('#voucher-portal-title').textContent = '🔒 VOUCHER LOCKED';
+  $('#voucher-portal-title').textContent = '🔒 Voucher Locked';
   $('#voucher-greeting').textContent = `Hello, ${name}! Your voucher details are protected. Send your result screenshot to the organizer on WhatsApp to receive the claim password.`;
   $('#voucher-password-error').textContent = '';
   $('#voucher-claim-password').value = '';
@@ -1979,10 +2069,10 @@ function showUnlockedVoucher(){
 $('#btn-copy-voucher').addEventListener('click', async ()=>{
   const num = State.competition.voucher.number;
   if(!num){ showToast('No voucher number configured.', 'error'); return; }
-  try{
-    await navigator.clipboard.writeText(num);
+  const ok = await copyTextToClipboard(num);
+  if(ok){
     showToast('Voucher number copied!', 'success');
-  }catch(err){
+  }else{
     showToast('Could not copy. Please copy manually.', 'error');
   }
 });
@@ -2011,7 +2101,7 @@ function buildNextChallengeCardHTML(){
     </div>
     <p class="muted countdown-ready-text" style="text-align:center; margin-top:12px; display:none;">🎉 It's time! Tap below to check for the new challenge.</p>
     <p class="muted countdown-none-text" style="text-align:center; margin-top:10px; display:none;">⏳ The next challenge hasn't been scheduled yet — check back soon!</p>
-    <button class="btn btn-outline btn-refresh-check" type="button" style="margin-top:12px;">🔄 CHECK FOR NEW CHALLENGE</button>`;
+    <button class="btn btn-outline btn-refresh-check" type="button" style="margin-top:12px;">🔄 Check for New Challenge</button>`;
 }
 
 function nextChallengeCardId(which){
@@ -2204,7 +2294,7 @@ function renderAdminLoginScreen(){
       <div class="stack" style="width:100%;">
         <div class="field"><input type="password" id="setup-admin-pw" placeholder="Create admin password" autocomplete="new-password"></div>
         <div class="hint-error" id="setup-admin-error"></div>
-        <button class="btn btn-primary" id="btn-setup-admin">SET PASSWORD & CONTINUE</button>
+        <button class="btn btn-primary" id="btn-setup-admin">Set Password & Continue</button>
       </div>`;
     $('#btn-setup-admin').addEventListener('click', async ()=>{
       const pw = $('#setup-admin-pw').value;
@@ -2220,7 +2310,7 @@ function renderAdminLoginScreen(){
       <div class="stack" style="width:100%;">
         <div class="field"><input type="password" id="admin-pw-input" placeholder="Admin password" autocomplete="off"></div>
         <div class="hint-error" id="admin-login-error"></div>
-        <button class="btn btn-primary" id="btn-admin-login">LOGIN</button>
+        <button class="btn btn-primary" id="btn-admin-login">Login</button>
       </div>`;
     $('#btn-admin-login').addEventListener('click', async ()=>{
       const pw = $('#admin-pw-input').value;
@@ -2263,6 +2353,28 @@ function fillVoucherAdminFields(){
   $('#vset-claim-password').value = v.claimPassword || '';
 }
 
+$('#btn-verify-code').addEventListener('click', async ()=>{
+  const resultEl = $('#vfy-result');
+  const name = $('#vfy-name').value;
+  const correct = parseInt($('#vfy-correct').value, 10);
+  const total = parseInt($('#vfy-total').value, 10);
+  const codeInput = $('#vfy-code').value.trim().toUpperCase().replace(/[^A-F0-9]/g,'');
+  if(!name.trim() || isNaN(correct) || isNaN(total) || !codeInput){
+    resultEl.textContent = '⚠️ Fill in all fields first.';
+    resultEl.style.color = 'var(--amber-dim)';
+    return;
+  }
+  const expected = await computeVerifyCode(State.competition.id, name, correct, total);
+  const expectedDigits = expected.replace('-','');
+  if(codeInput === expectedDigits){
+    resultEl.textContent = '✅ Genuine — this code matches. Safe to approve.';
+    resultEl.style.color = 'var(--teal)';
+  } else {
+    resultEl.textContent = '❌ Does not match — likely faked, edited, or the details were mistyped. Double-check what you entered before rejecting.';
+    resultEl.style.color = 'var(--red)';
+  }
+});
+
 $('#btn-save-voucher').addEventListener('click', ()=>{
   const c = State.competition;
   if(!c.voucher) c.voucher = {};
@@ -2291,7 +2403,7 @@ function refreshAdminDashboard(){
   $('#dash-top-score').textContent = top;
   $('#dash-status').textContent = c.status.toUpperCase();
   const toggleLbl = $('#tile-toggle-status-label');
-  toggleLbl.textContent = c.status === 'open' ? 'CLOSE COMPETITION' : 'OPEN COMPETITION';
+  toggleLbl.textContent = c.status === 'open' ? 'Close Competition' : 'Open Competition';
   fillVoucherAdminFields();
 }
 
@@ -2379,8 +2491,9 @@ $('#btn-generate-pw').addEventListener('click', ()=>{
 $('#btn-copy-pw').addEventListener('click', async ()=>{
   const val = $('#set-comp-password').value;
   if(!val){ showToast('Type or generate a password first.', 'error'); return; }
-  try{ await navigator.clipboard.writeText(val); showToast('Password copied.', 'success'); }
-  catch(err){ showToast('Could not copy — select and copy manually.', 'error'); }
+  const ok = await copyTextToClipboard(val);
+  if(ok){ showToast('Password copied.', 'success'); }
+  else{ showToast('Could not copy — select and copy manually.', 'error'); }
 });
 
 $('#btn-save-settings').addEventListener('click', async ()=>{
@@ -2422,7 +2535,7 @@ $('#btn-reset-attempts').addEventListener('click', ()=>{
     localStorage.removeItem(LS_DEVICE_ATTEMPTED);
     refreshAdminDashboard();
     showToast('All attempts have been reset.', 'success');
-  }, {confirmLabel:'RESET'});
+  }, {confirmLabel:'Reset'});
 });
 $('#btn-reset-everything').addEventListener('click', ()=>{
   confirmModal('This removes the competition, all questions, uploaded audio, settings and attempts. This cannot be undone.', ()=>{
@@ -2446,8 +2559,8 @@ $('#btn-reset-everything').addEventListener('click', ()=>{
       localStorage.removeItem(LS_ADMIN_SESSION);
       showScreen('screen-landing');
       renderLandingInfo();
-    }, {confirmLabel:'DELETE EVERYTHING', title:'Final confirmation'});
-  }, {confirmLabel:'CONTINUE', title:'Reset everything?'});
+    }, {confirmLabel:'Delete Everything', title:'Final confirmation'});
+  }, {confirmLabel:'Continue', title:'Reset everything?'});
 });
 
 /* ============================================================
@@ -2489,7 +2602,7 @@ function renderQuestionsList(){
         saveCompetition();
         renderQuestionsList();
         showToast('Question deleted.', 'success');
-      }, {confirmLabel:'DELETE'});
+      }, {confirmLabel:'Delete'});
     });
     div.querySelector('[data-act=up]').addEventListener('click', ()=>{
       if(realIdx>0){ [c.questions[realIdx-1],c.questions[realIdx]] = [c.questions[realIdx],c.questions[realIdx-1]]; saveCompetition(); renderQuestionsList(); }
@@ -2573,7 +2686,7 @@ function renderQuestionEditorSongUpload(){
     <div class="upload-slot ${editorDraft.audioId ? 'filled':''}">
       <label class="upload-label">
         <input type="file" accept="audio/*" id="qed-song-file-input">
-        <div>${editorDraft.audioId ? '🔁 Replace song' : '🎧 UPLOAD SONG AUDIO'}</div>
+        <div>${editorDraft.audioId ? '🔁 Replace song' : '🎧 Upload Song Audio'}</div>
       </label>
       <div class="upload-filename">${editorDraft.filename ? escapeHtml(editorDraft.filename) : ''}</div>
       <audio id="qed-song-preview" controls style="width:100%; margin-top:8px; ${editorDraft.audioId?'':'display:none;'}"></audio>
@@ -2784,7 +2897,7 @@ $('#import-file-input').addEventListener('change', (e)=>{
   if(!file) return;
   confirmModal('Importing will replace your current competition, questions, audio and attempts. Continue?', ()=>{
     doImport(file);
-  }, {confirmLabel:'IMPORT', title:'Import competition?'});
+  }, {confirmLabel:'Import', title:'Import competition?'});
   e.target.value = '';
 });
 async function doImport(file){
@@ -2852,7 +2965,7 @@ function renderWizard(){
       <h3>Step 2 · Competition password</h3>
       <p class="muted">Participants will need this password to join.</p>
       <div class="field"><label>Password</label><input type="text" id="wz-password" placeholder="Enter or generate a password"></div>
-      <button class="btn btn-outline btn-sm" id="wz-gen-pw" type="button" style="width:auto;">🎲 GENERATE</button>`;
+      <button class="btn btn-outline btn-sm" id="wz-gen-pw" type="button" style="width:auto;">🎲 Generate</button>`;
     setTimeout(()=>{
       $('#wz-gen-pw').addEventListener('click', ()=>{ $('#wz-password').value = genRandomPassword(8); });
     },0);
@@ -2860,7 +2973,7 @@ function renderWizard(){
     body.innerHTML = `
       <h3>Step 3 · Add songs</h3>
       <p class="muted">Add your questions with the question builder. You currently have <strong>${d.questions.length}</strong> question(s).</p>
-      <button class="btn btn-primary" id="wz-add-q" type="button">➕ ADD QUESTION NOW</button>
+      <button class="btn btn-primary" id="wz-add-q" type="button">➕ Add Question Now</button>
       <p class="faint">You'll be taken to the question editor; come back to the wizard afterward from Manage Questions, or continue for now.</p>`;
     setTimeout(()=>{
       $('#wz-add-q').addEventListener('click', ()=>{
@@ -2893,7 +3006,7 @@ function renderWizard(){
         <div class="row-between"><span>Timer</span><strong>${d.timerEnabled ? d.timeLimitMinutes+' min' : 'Off'}</strong></div>
         <div class="row-between"><span>Password set</span><strong>${d.passwordHash?'Yes':'No'}</strong></div>
       </div>
-      <button class="btn btn-outline" id="wz-live-preview" type="button">👁️ PREVIEW AS PLAYER</button>`;
+      <button class="btn btn-outline" id="wz-live-preview" type="button">👁️ Preview as Player</button>`;
     setTimeout(()=>{
       $('#wz-live-preview').addEventListener('click', ()=>{
         if(State.competition.questions.length===0){ showToast('Add at least one question first.', 'error'); return; }
@@ -3058,7 +3171,7 @@ async function renderSongLibrary(mode){
           console.error(err);
           showToast('Delete failed.', 'error');
         }
-      }, {confirmLabel:'DELETE'});
+      }, {confirmLabel:'Delete'});
     });
   });
 
@@ -3462,19 +3575,16 @@ async function init(){
   }
 
   // Decide the start screen while still hidden behind the loading overlay.
-  // Normally this is the public home screen; a locked/completed challenge
-  // or a quiz already in progress still take you to their own screen
-  // exactly as before — it's only the admin auto-open that's gone.
-  if (State.lockedChallenge) {
-    showScreen('screen-voucher-claim');
-    showNextChallengeTeaser('claim');
-    $('#btn-back-to-results').style.display = 'none';
-    $('#btn-voucher-import').style.display = 'block';
-  } else {
-    const resumed = resumeSessionIfAny();
-    if(!resumed){
-      showScreen('screen-landing');
-      $('#btn-join').textContent = '🎧 JOIN COMPETITION';
+  // The app always opens on the public home screen — a previously
+  // completed/locked challenge is reflected right there (the "CHALLENGE
+  // COMPLETED" button + voucher info), it no longer force-jumps straight
+  // to the voucher-claim screen. A quiz already in progress still resumes
+  // exactly where it left off.
+  const resumed = resumeSessionIfAny();
+  if(!resumed){
+    showScreen('screen-landing');
+    if(!State.lockedChallenge){
+      $('#btn-join').textContent = '🎧 Join Competition';
       $('#btn-join').disabled = false;
     }
   }
