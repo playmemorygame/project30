@@ -5,10 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Music Challenge — Song Guessing Competition</title>
 <meta name="description" content="Listen. Guess. Score. Win.">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Music Challenge">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%230a0a0a'/%3E%3Ccircle cx='50' cy='50' r='42' fill='none' stroke='%231db954' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%231db954'/%3E%3Cpath d='M50 50 L74 38' stroke='%231db954' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0a'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231db954'/%3E%3Cpath d='M42 34 L42 66 L68 50 Z' fill='%23000'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Music%20Challenge%22%2C%22short_name%22%3A%22Music%20Challenge%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0a%22%2C%22theme_color%22%3A%22%230a0a0a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520100%2520100%2527%253E%253Crect%2520width%253D%2527100%2527%2520height%253D%2527100%2527%2520rx%253D%252720%2527%2520fill%253D%2527%25230a0a0a%2527%252F%253E%253Ccircle%2520cx%253D%252750%2527%2520cy%253D%252750%2527%2520r%253D%252734%2527%2520fill%253D%2527%25231db954%2527%252F%253E%253Cpath%2520d%253D%2527M42%252034%2520L42%252066%2520L68%252050%2520Z%2527%2520fill%253D%2527%2523000%2527%252F%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
 
 <style>
 /* ============================================================
-   DESIGN TOKENS — LIGHT THEME
+   DESIGN TOKENS — DARK THEME (SPOTIFY-INSPIRED)
    ============================================================ */
 :root{
   --bg:#0a0a0a;
@@ -412,9 +420,74 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 
 /* Confetti canvas overlay */
 #confetti-canvas{position:fixed; inset:0; z-index:500; pointer-events:none;}
+
+/* ============================================================
+   AMBIENT BACKGROUND — floating blurred color orbs
+   ============================================================ */
+.bg-orbs{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+.orb{position:absolute; border-radius:50%; filter:blur(70px); opacity:.35; will-change:transform;}
+.orb-a{width:340px; height:340px; background:var(--violet); top:-120px; left:-80px; animation:orbFloatA 22s ease-in-out infinite;}
+.orb-b{width:300px; height:300px; background:#8b5cf6; bottom:-100px; right:-100px; animation:orbFloatB 26s ease-in-out infinite;}
+.orb-c{width:260px; height:260px; background:var(--amber); top:40%; left:50%; opacity:.16; animation:orbFloatC 30s ease-in-out infinite;}
+@keyframes orbFloatA{0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(60px,80px) scale(1.15);}}
+@keyframes orbFloatB{0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-50px,-60px) scale(1.1);}}
+@keyframes orbFloatC{0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-58%,-42%) scale(1.25);}}
+@media (prefers-reduced-motion: reduce){ .orb{animation:none;} }
+.app{position:relative; z-index:1;}
+
+/* ============================================================
+   GLASS / PREMIUM POLISH
+   ============================================================ */
+.card, .info-tile, .stat-box, .stat-card, .q-list-item, .action-tile, .option-card, .modal-sheet, .toast{
+  background:rgba(24,24,24,.72) !important;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.topbar{background:rgba(24,24,24,.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);}
+.bottom-nav{background:rgba(24,24,24,.85) !important; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);}
+
+.logo-emoji{
+  font-size:56px; line-height:1; display:inline-block;
+  filter:drop-shadow(0 0 22px var(--violet-glow));
+  animation:logoPulse 3.2s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.06);}}
+@media (prefers-reduced-motion: reduce){ .logo-emoji{animation:none;} }
+
+.brand{font-size:32px; font-weight:800; letter-spacing:-.5px; color:var(--text);}
+.gradient-text{
+  background:linear-gradient(100deg,var(--violet) 0%,var(--amber) 45%,var(--violet) 90%);
+  background-size:220% auto;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:gradientShimmer 5s linear infinite;
+}
+@keyframes gradientShimmer{to{background-position:-220% center;}}
+@media (prefers-reduced-motion: reduce){ .gradient-text{animation:none;} }
+
+.btn-primary{position:relative; overflow:hidden;}
+.btn-primary::after{
+  content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent);
+  transform:skewX(-20deg);
+}
+.btn-primary:hover::after{animation:btnShine 1s ease;}
+@keyframes btnShine{from{left:-60%;} to{left:130%;}}
+
+.card, .result-card, .voucher-card{transition:transform .2s ease, box-shadow .2s ease;}
+
+.option-card{cursor:pointer; transition:border-color .15s, background .15s, transform .12s;}
+.option-card:hover{transform:translateY(-1px);}
+.option-card.selected{box-shadow:0 0 0 1px var(--violet), 0 8px 22px -8px var(--violet-glow);}
+
+.result-card{box-shadow:0 12px 44px -14px var(--violet-glow), var(--shadow);}
 </style>
 </head>
 <body>
+<div class="bg-orbs" aria-hidden="true">
+  <span class="orb orb-a"></span>
+  <span class="orb orb-b"></span>
+  <span class="orb orb-c"></span>
+</div>
 <div id="app-loading-overlay">
   <div class="logo-emoji">🎵</div>
   <div class="loading-spinner" role="status" aria-label="Loading"></div>
@@ -437,6 +510,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 
       <div class="stack" style="width:100%; margin-top:10px;">
         <button class="btn btn-primary" id="btn-join" style="height:56px; font-size:17px;">🎧 Join Competition</button>
+        <button class="btn btn-ghost hidden" id="btn-install-app">📲 Install App for Offline Play</button>
         <button class="btn btn-ghost" id="btn-open-song-library">🎵 My Song Library</button>
         <button class="btn btn-ghost" id="btn-import-song-pack">📀 Import Song Pack</button>
         <button class="btn btn-ghost" id="btn-admin">🛠 Admin</button>
@@ -1116,6 +1190,49 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
+/* ============================================================
+   OFFLINE SUPPORT — registers ./service-worker.js if present.
+   Once a player has opened this app with internet one time while
+   hosted online, their browser caches it so it reopens with zero
+   data connection. No effect (and no error shown) if the companion
+   service-worker.js file isn't hosted alongside this HTML file, or
+   if the app was opened as a local file rather than a web link.
+   ============================================================ */
+(function setupOfflineSupport(){
+  if(!('serviceWorker' in navigator)) return;
+  if(location.protocol !== 'http:' && location.protocol !== 'https:') return;
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js').then(()=>{
+      showOfflineReadyToastSoon();
+    }).catch(()=>{ /* companion file not hosted here — silently skip */ });
+  });
+  function showOfflineReadyToastSoon(){
+    navigator.serviceWorker.ready.then(()=>{
+      setTimeout(()=>{
+        if(typeof showToast === 'function') showToast('✅ Ready to play offline next time!', 'success');
+      }, 1200);
+    }).catch(()=>{});
+  }
+})();
+
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  const btn = document.getElementById('btn-install-app');
+  if(btn) btn.classList.remove('hidden');
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('btn-install-app');
+  if(btn) btn.addEventListener('click', async ()=>{
+    if(!_deferredInstallPrompt) return;
+    _deferredInstallPrompt.prompt();
+    await _deferredInstallPrompt.userChoice;
+    _deferredInstallPrompt = null;
+    btn.classList.add('hidden');
+  });
+});
+
 /* ============================================================
    CONFIGURATION
    ============================================================ */
