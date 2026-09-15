@@ -1118,7 +1118,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
       <button class="btn btn-primary" id="btn-sub-generate" style="height:56px; font-size:17px;">🎼 Generate HTML Challenge</button>
       <div class="hint-error" id="sub-generate-error"></div>
       <a id="sub-download-fallback-link" class="btn btn-gold hidden" style="margin-top:10px; text-decoration:none;" download>⬇️ Download</a>
-      <p class="faint hidden" id="sub-download-fallback-hint" style="margin-top:6px;">Tap the button above to save the file to your device (in your Files/Downloads app). If you're inside WhatsApp, Instagram, or another in-app browser, open this page in Chrome or Safari first — in-app browsers usually block downloads.</p>
+      <p class="faint hidden" id="sub-download-fallback-hint" style="margin-top:6px;">If your browser didn't already prompt you to save the file, tap the button above. If you're inside WhatsApp, Instagram, or another in-app browser, open this page in Chrome or Safari first — in-app browsers usually block downloads.</p>
       <div class="btn-row">
         <button class="btn btn-ghost" id="btn-sub-reset-draft">🔄 Reset Draft</button>
         <button class="btn btn-ghost" id="btn-sub-back-admin">← Back to Admin</button>
@@ -4909,6 +4909,20 @@ function downloadSubChallengeHTML(){
     const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob);
 
+    // Trigger the browser's own native download prompt directly —
+    // in Chrome/Edge/Samsung Internet this pops the "Choose where to
+    // download" dialog immediately on tapping Generate, same as any
+    // normal file download.
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // Keep a visible manual button too, as a backup for browsers that
+    // silently ignore the automatic trigger above (mainly in-app
+    // browsers like WhatsApp/Instagram).
     if(fallbackLink){
       if(fallbackLink.href && fallbackLink.href.startsWith('blob:')){
         URL.revokeObjectURL(fallbackLink.href);
@@ -4917,10 +4931,9 @@ function downloadSubChallengeHTML(){
       fallbackLink.download = filename;
       fallbackLink.textContent = '⬇️ Download ' + filename + ' (' + sizeMB + ' MB)';
       fallbackLink.classList.remove('hidden');
-      fallbackLink.scrollIntoView({behavior:'smooth', block:'center'});
     }
     if(fallbackHint) fallbackHint.classList.remove('hidden');
-    showToast('Your file is ready — tap the download button below.', 'success');
+    showToast('Challenge ready — check your download prompt, or use the button below.', 'success');
   }catch(err){
     console.error(err);
     showToast('Could not prepare the file. Try a smaller challenge, or open this page in Chrome/Safari instead of an in-app browser.', 'error');
