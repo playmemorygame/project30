@@ -4409,13 +4409,47 @@ input{font-family:inherit;}
 .voucher-number{font-family:var(--mono);font-size:20px;font-weight:800;letter-spacing:2px;background:var(--bg-input);border:1px dashed var(--teal);border-radius:12px;padding:14px;display:inline-block;margin:12px 0;word-break:break-all;}
 .copy-btn{width:auto;margin-top:10px;}
 @media (min-width:640px){ .app{max-width:600px;} .screen{padding:28px 26px 46px;} }
+
+/* Now-playing equalizer bars */
+.eq-bars{display:flex;align-items:flex-end;gap:3px;height:18px;flex:none;}
+.eq-bars span{display:block;width:3px;background:var(--violet);border-radius:2px;animation:eqBounce 1s ease-in-out infinite;}
+.eq-bars span:nth-child(1){animation-delay:-.9s;}
+.eq-bars span:nth-child(2){animation-delay:-.6s;}
+.eq-bars span:nth-child(3){animation-delay:-.3s;}
+.eq-bars span:nth-child(4){animation-delay:0s;}
+.eq-bars.paused span{animation-play-state:paused;height:4px;}
+@keyframes eqBounce{0%,100%{height:4px;}50%{height:18px;}}
+
+/* Streak toast + badge */
+.streak-pop{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-140%);background:linear-gradient(135deg,var(--violet),var(--violet-dim));color:#000;font-weight:800;font-size:14.5px;padding:10px 20px;border-radius:999px;box-shadow:0 10px 26px -6px var(--violet-glow);z-index:400;white-space:nowrap;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s ease;opacity:0;display:flex;align-items:center;gap:6px;}
+.streak-pop.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.streak-badge{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--amber);background:rgba(255,214,102,.1);border:1px solid rgba(255,214,102,.3);padding:4px 10px;border-radius:999px;}
+
+/* Animated circular score ring */
+.score-ring-wrap{position:relative;width:168px;height:168px;margin:10px auto 2px;}
+.score-ring-wrap svg{transform:rotate(-90deg);width:100%;height:100%;}
+.score-ring-track{fill:none;stroke:var(--bg-input);stroke-width:10;}
+.score-ring-fill{fill:none;stroke:var(--violet);stroke-width:10;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1.1s cubic-bezier(.25,1,.35,1);}
+.score-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-ring-center .big{font-size:38px;font-weight:900;line-height:1;color:var(--text);}
+.score-ring-center .sub{font-size:11.5px;color:var(--text-faint);margin-top:2px;letter-spacing:.4px;text-transform:uppercase;}
+
+/* Achievement badge chips */
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
+.achv-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);padding:7px 12px;border-radius:999px;animation:achvPop .4s cubic-bezier(.34,1.56,.64,1) backwards;}
+.achv-chip.gold{color:var(--amber);border-color:rgba(255,214,102,.35);background:rgba(255,214,102,.08);}
+.achv-chip.green{color:var(--violet);border-color:rgba(29,185,84,.35);background:rgba(29,185,84,.08);}
+@keyframes achvPop{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:scale(1);}}
+
+.result-card{box-shadow:0 12px 44px -14px var(--violet-glow),var(--shadow);}
+#confetti-canvas{position:fixed;inset:0;z-index:500;pointer-events:none;}
 `;
 
 const SUB_CHALLENGE_JS = `
 (function(){
   'use strict';
   var data = CHALLENGE_DATA;
-  var state = { playerName: '', order: [], optionOrders: {}, index: 0, answers: [], startTime: 0, timerEndTs: null, timerInterval: null, audioEl: null, currentBtn: null };
+  var state = { playerName: '', order: [], optionOrders: {}, index: 0, answers: [], startTime: 0, timerEndTs: null, timerInterval: null, audioEl: null, currentBtn: null, streak: 0, bestStreak: 0 };
 
   function q(sel){ return document.querySelector(sel); }
   function qa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
@@ -4430,6 +4464,108 @@ const SUB_CHALLENGE_JS = `
     if(state.currentBtn){ state.currentBtn.classList.remove('playing'); state.currentBtn.textContent = '▶'; }
     state.audioEl = null;
     state.currentBtn = null;
+  }
+
+  function updateStreakBadge(){
+    var badge = q('#q-streak-badge');
+    if(!badge) return;
+    if(state.streak >= 2){ badge.textContent = '🔥 ' + state.streak; badge.classList.remove('hidden'); }
+    else { badge.classList.add('hidden'); }
+  }
+
+  function showStreakPop(streak){
+    var pop = q('#streak-pop');
+    if(!pop){
+      pop = document.createElement('div');
+      pop.id = 'streak-pop';
+      pop.className = 'streak-pop';
+      document.body.appendChild(pop);
+    }
+    var messages = {2:'🔥 2 in a row!', 3:'🔥 3 in a row!', 4:'⚡ 4 streak!', 5:'⚡ On fire — 5!'};
+    pop.textContent = messages[streak] || ('🚀 ' + streak + ' streak!');
+    pop.classList.remove('show');
+    void pop.offsetWidth;
+    pop.classList.add('show');
+    clearTimeout(pop._hideTimer);
+    pop._hideTimer = setTimeout(function(){ pop.classList.remove('show'); }, 1400);
+  }
+
+  var feedbackAudioCtx = null;
+  function playFeedbackTone(correct){
+    try{
+      if(!feedbackAudioCtx) feedbackAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var ctx = feedbackAudioCtx;
+      var now = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      if(correct){
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now+0.09);
+        osc.frequency.setValueAtTime(783.99, now+0.18);
+      } else {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(174.6, now+0.09);
+      }
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.09, now+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now+0.32);
+      osc.start(now);
+      osc.stop(now+0.34);
+    }catch(e){}
+  }
+
+  function launchConfetti(count){
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    count = count || 120;
+    var canvas = q('#confetti-canvas');
+    if(!canvas){
+      canvas = document.createElement('canvas');
+      canvas.id = 'confetti-canvas';
+      document.body.appendChild(canvas);
+    }
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var colors = ['#1db954','#1ed760','#ffd666','#ffffff','#2d9cdb'];
+    var pieces = [];
+    for(var i=0;i<count;i++){
+      pieces.push({
+        x: Math.random()*window.innerWidth,
+        y: -20 - Math.random()*window.innerHeight*0.5,
+        w: 5 + Math.random()*5,
+        h: 8 + Math.random()*6,
+        rot: Math.random()*360,
+        vRot: -8 + Math.random()*16,
+        vy: 2 + Math.random()*3,
+        vx: -1.5 + Math.random()*3,
+        color: colors[Math.floor(Math.random()*colors.length)]
+      });
+    }
+    var frame = 0;
+    var maxFrames = 220;
+    function tick(){
+      frame++;
+      ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+      pieces.forEach(function(p){
+        p.x += p.vx; p.y += p.vy; p.rot += p.vRot;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      });
+      if(frame < maxFrames){ requestAnimationFrame(tick); }
+      else { ctx.clearRect(0,0,window.innerWidth,window.innerHeight); canvas.remove(); }
+    }
+    requestAnimationFrame(tick);
   }
 
   function startTimerIfNeeded(){
@@ -4461,6 +4597,8 @@ const SUB_CHALLENGE_JS = `
     data.songs.forEach(function(s){ state.optionOrders[s.id] = shuffle(s.options.map(function(o){ return o.id; })); });
     state.index = 0;
     state.answers = [];
+    state.streak = 0;
+    state.bestStreak = 0;
     state.startTime = Date.now();
     state.timerEndTs = data.timerEnabled ? (Date.now() + (Number(data.timeLimitMinutes)||10)*60000) : null;
     show('quiz');
@@ -4487,11 +4625,13 @@ const SUB_CHALLENGE_JS = `
     playerWrap.innerHTML = '<div class="song-player-card">'
       + '<button class="play-btn" id="qp-btn" type="button" aria-label="Play">▶</button>'
       + '<div class="song-player-info">'
-      + '<div class="song-player-label">🎧 Now Playing</div>'
+      + '<div class="song-player-label" style="display:flex;align-items:center;gap:8px;">🎧 Now Playing <span class="eq-bars paused" id="qp-eq"><span></span><span></span><span></span><span></span></span></div>'
       + '<div class="audio-progress">'
       + '<div class="audio-bar" id="qp-bar"><div class="audio-bar-fill" id="qp-fill"></div></div>'
       + '<div class="audio-time" id="qp-time">00:00</div>'
       + '</div></div></div>';
+
+    updateStreakBadge();
 
     var audio = new Audio(song.audioDataUrl);
     audio.preload = 'auto';
@@ -4501,6 +4641,12 @@ const SUB_CHALLENGE_JS = `
     var bar = q('#qp-bar');
     var fillEl = q('#qp-fill');
     var timeEl = q('#qp-time');
+    var eqEl = q('#qp-eq');
+    if(eqEl && btn && window.MutationObserver){
+      var syncEq = function(){ eqEl.classList.toggle('paused', !btn.classList.contains('playing')); };
+      syncEq();
+      new MutationObserver(syncEq).observe(btn, {attributes:true, attributeFilter:['class']});
+    }
     var clipStart = song.useClip ? (Number(song.clipStart) || 0) : 0;
     var clipDur = song.useClip ? (Number(song.clipDuration) || 0) : 0;
 
@@ -4598,11 +4744,42 @@ const SUB_CHALLENGE_JS = `
     var secs = Math.round((Date.now() - state.startTime)/1000);
     var pts = Number(data.pointsPerQuestion) || 10;
     q('#r-name').textContent = state.playerName || 'Player';
-    q('#r-score').innerHTML = (correct*pts) + '<span>/' + (total*pts) + '</span>';
+    q('#r-score').innerHTML = (correct*pts) + '<span style="font-size:16px;">/' + (total*pts) + '</span>';
     q('#r-correct').textContent = correct;
     q('#r-incorrect').textContent = incorrect;
     q('#r-accuracy').textContent = pct + '%';
     q('#r-time').textContent = fmt(secs);
+
+    var ring = q('#r-ring-fill');
+    if(ring){
+      var circumference = 2 * Math.PI * 70;
+      ring.style.stroke = pct >= 70 ? 'var(--violet)' : (pct >= 40 ? 'var(--amber)' : 'var(--red)');
+      ring.style.strokeDashoffset = circumference;
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          ring.style.strokeDashoffset = String(circumference - (pct/100)*circumference);
+        });
+      });
+    }
+
+    var badgeWrap = q('#r-badges');
+    if(badgeWrap){
+      var chips = [];
+      if(pct === 100) chips.push({cls:'gold', label:'🏆 Perfect Score'});
+      if(state.bestStreak >= 3) chips.push({cls:'green', label:'🔥 ' + state.bestStreak + ' Streak'});
+      if(total > 0){
+        var avgSecPerQ = secs / total;
+        if(avgSecPerQ > 0 && avgSecPerQ <= 6) chips.push({cls:'', label:'⚡ Speed Demon'});
+      }
+      if(pct >= 80 && pct < 100) chips.push({cls:'', label:'🎯 Sharp Ear'});
+      if(incorrect === 0 && correct > 0) chips.push({cls:'gold', label:'✨ No Mistakes'});
+      badgeWrap.innerHTML = chips.map(function(ch,i){
+        return '<span class="achv-chip ' + ch.cls + '" style="animation-delay:' + (i*80) + 'ms">' + ch.label + '</span>';
+      }).join('');
+    }
+
+    if(pct >= 60) launchConfetti(pct === 100 ? 180 : 110);
+
     show('results');
   }
 
@@ -4628,6 +4805,15 @@ const SUB_CHALLENGE_JS = `
     var card = q('.option-card[data-option-id="' + sel + '"]');
     if(card) card.classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
     state.answers.push({ questionId: song.id, selectedOptionId: sel, correct: isCorrect });
+    playFeedbackTone(isCorrect);
+    if(isCorrect){
+      state.streak++;
+      state.bestStreak = Math.max(state.bestStreak, state.streak);
+      if(state.streak >= 2) showStreakPop(state.streak);
+    } else {
+      state.streak = 0;
+    }
+    updateStreakBadge();
     stopAudio();
     setTimeout(function(){
       state.index++;
@@ -4841,7 +5027,10 @@ function generateSubChallengeHTML(){
   <section class="screen" id="screen-quiz">
     <div class="qmeta">
       <span id="q-progress">QUESTION 1 / 1</span>
-      <span class="timer-pill hidden" id="q-timer">⏱ 00:00</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="streak-badge hidden" id="q-streak-badge">🔥 0</span>
+        <span class="timer-pill hidden" id="q-timer">⏱ 00:00</span>
+      </div>
     </div>
     <div class="progress-wrap" style="margin-bottom:8px;"><div class="progress-track"><div class="progress-fill" id="q-fill" style="width:0%"></div></div></div>
     <p class="qtext">🎧 <span id="q-text">Which song is playing?</span></p>
@@ -4861,10 +5050,19 @@ function generateSubChallengeHTML(){
         <p class="faint" style="letter-spacing:1px;margin-top:4px;">CHALLENGE COMPLETE</p>
         <p style="margin-top:12px;font-size:13px;color:var(--text-faint);">PLAYER</p>
         <p class="r-name" id="r-name">—</p>
-        <div class="result-score" id="r-score">0<span>/0</span></div>
-        <p class="faint">SCORE</p>
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 160 160">
+            <circle class="score-ring-track" cx="80" cy="80" r="70"></circle>
+            <circle class="score-ring-fill" id="r-ring-fill" cx="80" cy="80" r="70"></circle>
+          </svg>
+          <div class="score-ring-center">
+            <div class="big" id="r-score">0<span style="font-size:16px;">/0</span></div>
+            <div class="sub">score</div>
+          </div>
+        </div>
+        <div id="r-badges" class="badge-row"></div>
         <div class="stat-grid">
-          <div class="stat-box"><div class="v" id="r-correct" style="color:var(--teal);">0</div><div class="k">✅ Correct</div></div>
+          <div class="stat-box"><div class="v" id="r-correct" style="color:var(--violet);">0</div><div class="k">✅ Correct</div></div>
           <div class="stat-box"><div class="v" id="r-incorrect" style="color:var(--red);">0</div><div class="k">❌ Incorrect</div></div>
           <div class="stat-box"><div class="v" id="r-accuracy">0%</div><div class="k">📊 Accuracy</div></div>
           <div class="stat-box"><div class="v" id="r-time">00:00</div><div class="k">⏱ Time</div></div>
