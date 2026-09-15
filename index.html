@@ -1117,6 +1117,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 
       <button class="btn btn-primary" id="btn-sub-generate" style="height:56px; font-size:17px;">🎼 Generate HTML Challenge</button>
       <div class="hint-error" id="sub-generate-error"></div>
+      <a id="sub-download-fallback-link" class="btn btn-gold hidden" style="margin-top:10px; text-decoration:none;" download>📥 Tap here to save the file</a>
+      <p class="faint hidden" id="sub-download-fallback-hint" style="margin-top:6px;">If nothing happened above, tap this button directly — some browsers (especially inside WhatsApp/Instagram/Messenger) block automatic downloads and need a manual tap.</p>
       <div class="btn-row">
         <button class="btn btn-ghost" id="btn-sub-reset-draft">🔄 Reset Draft</button>
         <button class="btn btn-ghost" id="btn-sub-back-admin">← Back to Admin</button>
@@ -4079,6 +4081,10 @@ function openSubChallengeCreator(){
   if(!State.subChallenge.draft){
     State.subChallenge.draft = subNewDraft();
   }
+  const fallbackLink = $('#sub-download-fallback-link');
+  const fallbackHint = $('#sub-download-fallback-hint');
+  if(fallbackLink) fallbackLink.classList.add('hidden');
+  if(fallbackHint) fallbackHint.classList.add('hidden');
   const d = State.subChallenge.draft;
   // Ensure new fields exist on older drafts
   if(typeof d.pointsPerQuestion !== 'number') d.pointsPerQuestion = 10;
@@ -4880,7 +4886,12 @@ ${SUB_CHALLENGE_JS}
   return html;
 }
 
-function downloadSubChallengeHTML(){
+function isInAppBrowser(){
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|Line\/|MicroMessenger|WhatsApp|TikTok|Twitter/i.test(ua);
+}
+
+async function downloadSubChallengeHTML(){
   const html = generateSubChallengeHTML();
   if(!html) return;
   const d = State.subChallenge.draft;
@@ -4890,8 +4901,38 @@ function downloadSubChallengeHTML(){
     showToast('Generated file is large (' + (html.length/1024/1024).toFixed(1) + ' MB). Download may take a moment.', 'error');
   }
 
+  const fallbackLink = $('#sub-download-fallback-link');
+  const fallbackHint = $('#sub-download-fallback-hint');
+
+  if(isInAppBrowser()){
+    showToast('⚠️ You appear to be inside an app browser (WhatsApp/Instagram/etc). These often block downloads — open this page in Chrome or Safari if the file doesn\'t appear.', 'error');
+  }
+
+  const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+
+  // Best option where supported: a real OS "Save As" dialog, saved
+  // straight into whatever folder the person picks (Downloads by default).
+  if(window.showSaveFilePicker){
+    try{
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'HTML file', accept: {'text/html': ['.html']} }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      showToast('Challenge saved: ' + filename, 'success');
+      return;
+    }catch(err){
+      if(err && err.name === 'AbortError'){
+        // User cancelled the save dialog — don't fall through to auto-download.
+        return;
+      }
+      // Otherwise fall through to the classic method below.
+    }
+  }
+
   try{
-    const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -4899,11 +4940,21 @@ function downloadSubChallengeHTML(){
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 8000);
-    showToast('Challenge downloaded: ' + filename, 'success');
+    showToast('Challenge downloaded: ' + filename + ' — check your Downloads folder.', 'success');
+
+    // Always leave a manual, tappable fallback in place too. Some mobile
+    // and in-app browsers silently swallow the programmatic click above,
+    // so a real user tap on a visible link is the most reliable path.
+    if(fallbackLink){
+      fallbackLink.href = url;
+      fallbackLink.download = filename;
+      fallbackLink.classList.remove('hidden');
+    }
+    if(fallbackHint) fallbackHint.classList.remove('hidden');
+    // Keep the URL alive for manual use; don't revoke on a short timer.
   }catch(err){
     console.error(err);
-    showToast('Download failed. Try again or use a smaller challenge.', 'error');
+    showToast('Download failed. Try again, use a smaller challenge, or open this page in Chrome/Safari instead of an in-app browser.', 'error');
   }
 }
 
