@@ -510,6 +510,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
 
       <div class="stack" style="width:100%; margin-top:10px;">
         <button class="btn btn-primary" id="btn-join" style="height:56px; font-size:17px;">🎧 Join Competition</button>
+        <button class="btn btn-primary hidden" id="btn-view-my-result" style="height:56px; font-size:17px; background:var(--amber); color:#241705;">🎁 View My Result / Claim Voucher</button>
         <button class="btn btn-ghost hidden" id="btn-install-app">📲 Install App for Offline Play</button>
         <button class="btn btn-ghost" id="btn-open-song-library">🎵 My Song Library</button>
         <button class="btn btn-ghost" id="btn-import-song-pack">📀 Import Song Pack</button>
@@ -1248,6 +1249,7 @@ const LS_ADMIN_SESSION = 'mc_admin_session_v1';
 const LS_PLAYER_NAME = 'mc_persistent_player_name';
 const LS_REMOTE_URL = 'mc_remote_url';
 const LS_COMPLETED_COMP_ID = 'mc_completed_comp_id';
+const LS_PLAYED_COMP_IDS = 'mc_played_comp_ids_v1';
 const DEFAULT_POINTS = 10;
 const DEFAULT_ADMIN_PASSWORD = 'lulamachuma@4856';
 
@@ -1490,6 +1492,41 @@ function setCompletedCompId(id){
 }
 function clearCompletedCompId(){
   try{ localStorage.removeItem(LS_COMPLETED_COMP_ID); }catch(e){}
+}
+
+/* ---------- Permanent anti-replay record ----------
+   Unlike LS_COMPLETED_COMP_ID (which only tracks the *current* lock
+   and gets cleared whenever a challenge is imported), this list is
+   append-only and NEVER cleared by importing a file. It's what stops
+   a player from bypassing the "already played" lock by re-importing
+   the exact same challenge file/link they were sent. */
+function getPlayedCompIds(){
+  try{
+    const raw = localStorage.getItem(LS_PLAYED_COMP_IDS);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function hasPlayedCompId(id){
+  return getPlayedCompIds().includes(id);
+}
+function addPlayedCompId(id){
+  try{
+    const arr = getPlayedCompIds();
+    if(!arr.includes(id)){
+      arr.push(id);
+      localStorage.setItem(LS_PLAYED_COMP_IDS, JSON.stringify(arr));
+    }
+  }catch(e){}
+}
+
+/* Find this device's own most recent attempt for a given competition,
+   so a returning player can pull their result/voucher back up later
+   without needing to keep the original tab open. */
+function getMyLastAttemptForComp(compId){
+  const mine = State.attempts.filter(a => a.competitionId === compId);
+  if(!mine.length) return null;
+  return mine.slice().sort((a,b)=> (b.timestamp||0) - (a.timestamp||0))[0];
 }
 
 /* ============================================================
@@ -1919,8 +1956,20 @@ function updateLandingForLocked(){
     joinBtn.textContent = '✅ Challenge Completed';
     joinBtn.disabled = true;
   }
+  const viewBtn = $('#btn-view-my-result');
+  const myAttempt = getMyLastAttemptForComp(State.competition.id);
+  if (viewBtn) {
+    viewBtn.classList.toggle('hidden', !myAttempt);
+  }
   showNextChallengeTeaser('landing');
 }
+
+$('#btn-view-my-result').addEventListener('click', ()=>{
+  const myAttempt = getMyLastAttemptForComp(State.competition.id);
+  if(!myAttempt){ showToast('No saved result found on this device.', 'error'); return; }
+  renderResults(myAttempt);
+  showScreen('screen-results');
+});
 
 $('#global-home-btn').addEventListener('click', ()=>{
   if(State.lockedChallenge){
@@ -1931,6 +1980,8 @@ $('#global-home-btn').addEventListener('click', ()=>{
       joinBtn.textContent = '🎧 Join Competition';
       joinBtn.disabled = false;
     }
+    const viewBtn = $('#btn-view-my-result');
+    if (viewBtn) viewBtn.classList.add('hidden');
     hideNextChallengeTeaser('landing');
   }
   showScreen('screen-landing');
@@ -1996,7 +2047,10 @@ async function handleMemberImport(file){
     const text = await file.text();
     const payload = JSON.parse(text);
     if(!payload.competition){ showToast('Invalid challenge file.', 'error'); return; }
-    
+
+    const importedId = payload.competition.id;
+    const alreadyPlayedThisOne = hasPlayedCompId(importedId);
+
     const existingAudio = await idbGetAll(STORE_AUDIO);
     for(const rec of existingAudio){ await idbDelete(STORE_AUDIO, rec.id); }
     
@@ -2012,7 +2066,20 @@ async function handleMemberImport(file){
     }
     saveCompetition();
     State.audioObjectUrls = {};
-    
+
+    if(alreadyPlayedThisOne){
+      // Same challenge they've already completed on this device — do NOT
+      // reset their lock or let them replay. Send them straight back to
+      // their existing result instead.
+      setCompletedCompId(importedId);
+      State.lockedChallenge = true;
+      renderLandingInfo();
+      showToast("You've already completed this challenge on this device — here's your result.", 'error');
+      showScreen('screen-landing');
+      updateLandingForLocked();
+      return;
+    }
+
     clearCompletedCompId();
     State.lockedChallenge = false;
     localStorage.removeItem(LS_DEVICE_ATTEMPTED);
@@ -2387,6 +2454,7 @@ async function finishQuiz(){
 
   const attempt = {
     id: genId('att'),
+    competitionId: c.id,
     playerName,
     score, maxScore,
     correct: correctCount,
@@ -2406,6 +2474,7 @@ async function finishQuiz(){
     if(c.oneAttemptPerDevice) localStorage.setItem(LS_DEVICE_ATTEMPTED, c.id);
     clearSession();
     setCompletedCompId(c.id);
+    addPlayedCompId(c.id);
     State.lockedChallenge = true;
   }
 
@@ -2674,7 +2743,8 @@ async function fetchRemoteCompetition(url) {
     State.audioObjectUrls = {};
     renderLandingInfo();
     
-    if (getCompletedCompId() === State.competition.id) {
+    if (hasPlayedCompId(State.competition.id)) {
+      setCompletedCompId(State.competition.id);
       State.lockedChallenge = true;
     } else {
       clearCompletedCompId();
