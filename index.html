@@ -1988,6 +1988,7 @@ $('#global-home-btn').addEventListener('click', ()=>{
   }
   showScreen('screen-landing');
 });
+$('#btn-results-home').addEventListener('click', ()=>{ $('#global-home-btn').click(); });
 
 $('#btn-join').addEventListener('click', ()=>{
   const c = State.competition;
@@ -4397,6 +4398,10 @@ input{font-family:inherit;}
 .result-card{background:var(--bg-card);border:2px solid var(--violet);border-radius:24px;padding:24px 18px;text-align:center;box-shadow:0 8px 30px -12px rgba(0,0,0,.08);}
 .trophy{font-size:44px;}
 .r-name{font-size:20px;font-weight:800;}
+.result-id{font-family:var(--mono);font-size:15px;letter-spacing:1px;background:var(--bg-input);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-top:14px;display:inline-block;color:var(--text-dim);}
+.result-verify-code{font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:1px;background:rgba(29,185,84,.08);border:1.5px dashed var(--violet);border-radius:10px;padding:9px 14px;margin-top:8px;display:inline-block;color:var(--violet-dim);}
+.result-share-hint{font-size:13px;color:var(--amber-dim);margin-top:12px;font-weight:600;}
+.disclaimer{background:rgba(255,214,102,.1);border:1px solid rgba(255,214,102,.3);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--amber);line-height:1.5;}
 .result-score{font-size:64px;font-weight:900;margin:6px 0 2px;letter-spacing:-1px;color:var(--violet);line-height:1.2;}
 .result-score span{font-size:24px;color:var(--text-faint);font-weight:700;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
@@ -4450,6 +4455,49 @@ const SUB_CHALLENGE_JS = `
   'use strict';
   var data = CHALLENGE_DATA;
   var state = { playerName: '', order: [], optionOrders: {}, index: 0, answers: [], startTime: 0, timerEndTs: null, timerInterval: null, audioEl: null, currentBtn: null, streak: 0, bestStreak: 0 };
+
+  /* ---------- Per-device "played once" lock + result recovery ----------
+     Keyed off the challenge's own ID (or a stable hash of its content if
+     no ID was set), so re-downloading or re-sending the exact same file
+     cannot be used to bypass a completed attempt on this device. */
+  function simpleHash(str){
+    var h = 0;
+    for(var i=0;i<str.length;i++){ h = (Math.imul(31,h) + str.charCodeAt(i))|0; }
+    return Math.abs(h).toString(36);
+  }
+  var challengeKey = (data.challengeId && String(data.challengeId).trim())
+    || simpleHash((data.title||'') + '|' + (data.songs||[]).map(function(s){ return s.id; }).join(','));
+  var LS_PLAYED = 'mc_sub_played_' + challengeKey;
+  var LS_ATTEMPT = 'mc_sub_attempt_' + challengeKey;
+
+  function getSavedAttempt(){
+    try{
+      var raw = localStorage.getItem(LS_ATTEMPT);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function saveAttempt(attempt){
+    try{
+      localStorage.setItem(LS_ATTEMPT, JSON.stringify(attempt));
+      localStorage.setItem(LS_PLAYED, '1');
+    }catch(e){}
+  }
+  function isLocked(){
+    try{ return localStorage.getItem(LS_PLAYED) === '1'; }catch(e){ return false; }
+  }
+  function computeVerifyCode(name, correct, total){
+    var secret = (data.voucher && data.voucher.claimPassword) || challengeKey;
+    var raw = challengeKey + '|' + (name||'').trim().toLowerCase() + '|' + correct + '|' + total + '|' + secret;
+    var hex = simpleHash(raw) + simpleHash(raw.split('').reverse().join(''));
+    var code = (hex.toUpperCase() + '00000000').slice(0,8).replace(/[^A-Z0-9]/g,'0');
+    return code.slice(0,4) + '-' + code.slice(4,8);
+  }
+  function genResultId(){
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = 'MH-';
+    for(var i=0;i<6;i++){ out += chars[Math.floor(Math.random()*chars.length)]; }
+    return out;
+  }
 
   function q(sel){ return document.querySelector(sel); }
   function qa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
@@ -4733,6 +4781,50 @@ const SUB_CHALLENGE_JS = `
     sub.textContent = (state.index === total-1) ? 'Submit & Finish' : 'Submit Answer';
   }
 
+  function renderResultsObj(attempt){
+    q('#r-name').textContent = attempt.playerName || 'Player';
+    q('#r-score').innerHTML = attempt.score + '<span style="font-size:16px;">/' + attempt.maxScore + '</span>';
+    q('#r-correct').textContent = attempt.correct;
+    q('#r-incorrect').textContent = attempt.incorrect;
+    q('#r-accuracy').textContent = attempt.percentage + '%';
+    q('#r-time').textContent = fmt(attempt.completionTime);
+    var idEl = q('#r-result-id');
+    if(idEl) idEl.textContent = 'RESULT ID: ' + attempt.resultId;
+    var vEl = q('#r-verify-code');
+    if(vEl) vEl.textContent = 'VERIFY CODE: ' + attempt.verifyCode;
+
+    var ring = q('#r-ring-fill');
+    if(ring){
+      var circumference = 2 * Math.PI * 70;
+      ring.style.stroke = attempt.percentage >= 70 ? 'var(--violet)' : (attempt.percentage >= 40 ? 'var(--amber)' : 'var(--red)');
+      ring.style.strokeDashoffset = circumference;
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          ring.style.strokeDashoffset = String(circumference - (attempt.percentage/100)*circumference);
+        });
+      });
+    }
+
+    var badgeWrap = q('#r-badges');
+    if(badgeWrap){
+      var chips = [];
+      if(attempt.percentage === 100) chips.push({cls:'gold', label:'🏆 Perfect Score'});
+      if((attempt.bestStreak||0) >= 3) chips.push({cls:'green', label:'🔥 ' + attempt.bestStreak + ' Streak'});
+      if(attempt.total > 0){
+        var avgSecPerQ = attempt.completionTime / attempt.total;
+        if(avgSecPerQ > 0 && avgSecPerQ <= 6) chips.push({cls:'', label:'⚡ Speed Demon'});
+      }
+      if(attempt.percentage >= 80 && attempt.percentage < 100) chips.push({cls:'', label:'🎯 Sharp Ear'});
+      if(attempt.incorrect === 0 && attempt.correct > 0) chips.push({cls:'gold', label:'✨ No Mistakes'});
+      badgeWrap.innerHTML = chips.map(function(ch,i){
+        return '<span class="achv-chip ' + ch.cls + '" style="animation-delay:' + (i*80) + 'ms">' + ch.label + '</span>';
+      }).join('');
+    }
+
+    var claimBtn2 = q('#btn-claim-voucher');
+    if(claimBtn2) claimBtn2.classList.toggle('hidden', !(data.voucher && data.voucher.claimPassword));
+  }
+
   function finishQuiz(){
     if(state.timerInterval){ clearInterval(state.timerInterval); state.timerInterval = null; }
     stopAudio();
@@ -4743,40 +4835,23 @@ const SUB_CHALLENGE_JS = `
     var pct = total ? Math.round((correct/total)*100) : 0;
     var secs = Math.round((Date.now() - state.startTime)/1000);
     var pts = Number(data.pointsPerQuestion) || 10;
-    q('#r-name').textContent = state.playerName || 'Player';
-    q('#r-score').innerHTML = (correct*pts) + '<span style="font-size:16px;">/' + (total*pts) + '</span>';
-    q('#r-correct').textContent = correct;
-    q('#r-incorrect').textContent = incorrect;
-    q('#r-accuracy').textContent = pct + '%';
-    q('#r-time').textContent = fmt(secs);
 
-    var ring = q('#r-ring-fill');
-    if(ring){
-      var circumference = 2 * Math.PI * 70;
-      ring.style.stroke = pct >= 70 ? 'var(--violet)' : (pct >= 40 ? 'var(--amber)' : 'var(--red)');
-      ring.style.strokeDashoffset = circumference;
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          ring.style.strokeDashoffset = String(circumference - (pct/100)*circumference);
-        });
-      });
-    }
-
-    var badgeWrap = q('#r-badges');
-    if(badgeWrap){
-      var chips = [];
-      if(pct === 100) chips.push({cls:'gold', label:'🏆 Perfect Score'});
-      if(state.bestStreak >= 3) chips.push({cls:'green', label:'🔥 ' + state.bestStreak + ' Streak'});
-      if(total > 0){
-        var avgSecPerQ = secs / total;
-        if(avgSecPerQ > 0 && avgSecPerQ <= 6) chips.push({cls:'', label:'⚡ Speed Demon'});
-      }
-      if(pct >= 80 && pct < 100) chips.push({cls:'', label:'🎯 Sharp Ear'});
-      if(incorrect === 0 && correct > 0) chips.push({cls:'gold', label:'✨ No Mistakes'});
-      badgeWrap.innerHTML = chips.map(function(ch,i){
-        return '<span class="achv-chip ' + ch.cls + '" style="animation-delay:' + (i*80) + 'ms">' + ch.label + '</span>';
-      }).join('');
-    }
+    var attempt = {
+      playerName: state.playerName || 'Player',
+      score: correct*pts,
+      maxScore: total*pts,
+      correct: correct,
+      incorrect: incorrect,
+      total: total,
+      percentage: pct,
+      completionTime: secs,
+      bestStreak: state.bestStreak,
+      resultId: genResultId(),
+      verifyCode: computeVerifyCode(state.playerName, correct, total),
+      timestamp: Date.now()
+    };
+    saveAttempt(attempt);
+    renderResultsObj(attempt);
 
     if(pct >= 60) launchConfetti(pct === 100 ? 180 : 110);
 
@@ -4784,6 +4859,11 @@ const SUB_CHALLENGE_JS = `
   }
 
   q('#btn-start').onclick = function(){
+    if(isLocked()){
+      var saved = getSavedAttempt();
+      if(saved){ renderResultsObj(saved); show('results'); }
+      return;
+    }
     q('#inp-name').value = state.playerName || '';
     show('name');
     setTimeout(function(){ try{ q('#inp-name').focus(); }catch(e){} }, 100);
@@ -4894,6 +4974,32 @@ const SUB_CHALLENGE_JS = `
     state.timerEndTs = null;
     show('landing');
   };
+
+  var homeBtn = q('#btn-results-home');
+  if(homeBtn){
+    homeBtn.onclick = function(){ show('landing'); };
+  }
+
+  var viewResultBtn = q('#btn-view-my-result');
+  if(viewResultBtn){
+    viewResultBtn.onclick = function(){
+      var saved = getSavedAttempt();
+      if(!saved) return;
+      state.playerName = saved.playerName;
+      renderResultsObj(saved);
+      show('results');
+    };
+  }
+
+  /* Apply the "played once" lock on load, if this device has already
+     completed this exact challenge. */
+  (function initLockState(){
+    if(!isLocked()) return;
+    var startBtn = q('#btn-start');
+    if(startBtn){ startBtn.textContent = '✅ Challenge Completed'; startBtn.disabled = true; }
+    var saved = getSavedAttempt();
+    if(saved && viewResultBtn){ viewResultBtn.classList.remove('hidden'); }
+  })();
 })();
 `;
 
@@ -5010,7 +5116,8 @@ function generateSubChallengeHTML(){
         <div class="info-tile"><div class="k">🎁 Prize</div><div class="v">${voucherConfigured ? escapeHtml(payload.voucher.amount || '—') : '—'}</div></div>
       </div>
       <button class="btn btn-primary" id="btn-start" style="max-width:320px;">🎧 Start Challenge</button>
-      <p class="faint" style="margin-top:8px;">Works offline — everything is inside this file.</p>
+      <button class="btn btn-primary hidden" id="btn-view-my-result" style="max-width:320px; background:var(--amber); color:#241705;">🎁 View My Result / Claim Voucher</button>
+      <p class="faint" style="margin-top:8px;">Works offline — everything is inside this file. Each person can play this challenge once per device.</p>
     </div>
   </section>
 
@@ -5067,9 +5174,14 @@ function generateSubChallengeHTML(){
           <div class="stat-box"><div class="v" id="r-accuracy">0%</div><div class="k">📊 Accuracy</div></div>
           <div class="stat-box"><div class="v" id="r-time">00:00</div><div class="k">⏱ Time</div></div>
         </div>
+        <div class="result-id" id="r-result-id">RESULT ID: —</div>
+        <div class="result-verify-code" id="r-verify-code">VERIFY CODE: —</div>
+        <div class="result-share-hint">📸 Take a screenshot with the Verify Code visible and send to the organizer</div>
       </div>
+      <div class="disclaimer">📸 <strong>Take a screenshot of this result</strong><br>Make sure the <strong>Verify Code</strong> is visible, then send it to the organizer to claim your prize. The code is unique to your exact score — an edited or AI-generated screenshot won't match it.</div>
       ${voucherButtonHtml}
-      <button class="btn btn-ghost" id="btn-play-again">🔁 Play Again</button>
+      <button class="btn btn-ghost hidden" id="btn-play-again">🔁 Play Again</button>
+      <button class="btn btn-ghost" id="btn-results-home">🏠 Home</button>
     </div>
   </section>
 ${voucherScreensHtml}
