@@ -106,16 +106,27 @@ a{color:var(--violet);}
   transition:transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, opacity .15s;
   width:100%;
   letter-spacing:.2px;
+  position:relative;
+  overflow:hidden;
 }
+.btn::after{
+  content:"";
+  position:absolute; top:-160%; left:-60%; width:35%; height:420%;
+  background:linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.8) 50%, rgba(255,255,255,0) 100%);
+  transform:rotate(18deg);
+  pointer-events:none;
+  transition:left .55s cubic-bezier(.2,.7,.3,1);
+}
+.btn:hover::after, .btn:focus-visible::after{left:135%;}
 .btn:active{transform:scale(.97);}
-.btn-primary{background:var(--violet); color:#000; box-shadow:0 6px 18px -4px var(--violet-glow);}
-.btn-primary:hover{background:var(--violet-dim); transform:scale(1.015);}
-.btn-gold{background:linear-gradient(135deg,var(--amber),#f0a916); color:#241705; box-shadow:0 3px 10px -3px rgba(255,214,102,.35);}
-.btn-outline{background:transparent; border:1.5px solid var(--text-dim); color:var(--text);}
+.btn-primary{background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.06) 32%,rgba(255,255,255,0) 55%),linear-gradient(180deg,var(--violet-dim),var(--violet) 60%,#0e8a3c 100%); color:#04210f; box-shadow:0 8px 20px -4px var(--violet-glow), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -4px 8px rgba(0,0,0,.28);}
+.btn-primary:hover{background:linear-gradient(180deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.08) 32%,rgba(255,255,255,0) 55%),linear-gradient(180deg,#48ee85,var(--violet-dim) 60%,var(--violet) 100%); transform:scale(1.015);}
+.btn-gold{background:linear-gradient(180deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.06) 32%,rgba(255,255,255,0) 55%),linear-gradient(180deg,#ffe9a8,var(--amber) 55%,#f0a916 100%); color:#241705; box-shadow:0 5px 14px -3px rgba(255,214,102,.45), inset 0 1px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(120,70,0,.22);}
+.btn-outline{background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 55%); border:1.5px solid var(--text-dim); color:var(--text); box-shadow:inset 0 1px 0 rgba(255,255,255,.14);}
 .btn-outline:hover{border-color:var(--violet); color:var(--violet-dim); transform:scale(1.015);}
-.btn-ghost{background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border-soft); border-radius:999px;}
-.btn-ghost:hover{border-color:var(--border); background:var(--bg-input); color:var(--text);}
-.btn-danger{background:rgba(241,94,94,.1); color:var(--red); border:1px solid rgba(241,94,94,.25);}
+.btn-ghost{background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 55%), var(--bg-card); color:var(--text-dim); border:1px solid var(--border-soft); border-radius:999px; box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
+.btn-ghost:hover{border-color:var(--border); background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 55%), var(--bg-input); color:var(--text);}
+.btn-danger{background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 55%), rgba(241,94,94,.1); color:var(--red); border:1px solid rgba(241,94,94,.25); box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
 .btn-sm{min-height:38px; font-size:13.5px; padding:0 14px; width:auto;}
 .btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
 .btn-row{display:flex; gap:10px;}
@@ -123,7 +134,7 @@ a{color:var(--violet);}
 
 /* ---------- Layout bits ---------- */
 .center-col{display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center; gap:18px;}
-.card{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);}
+.card{background:linear-gradient(165deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 32%), var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.07);}
 .stack{display:flex; flex-direction:column; gap:14px;}
 .row{display:flex; align-items:center; gap:10px;}
 .row-between{display:flex; align-items:center; justify-content:space-between; gap:10px;}
@@ -166,7 +177,7 @@ a{color:var(--violet);}
 
 /* ---------- Info grid on landing ---------- */
 .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%;}
-.info-tile{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:14px; text-align:left; box-shadow:var(--shadow);}
+.info-tile{background:linear-gradient(165deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 32%), var(--bg-card); border:1px solid var(--border-soft); border-radius:14px; padding:14px; text-align:left; box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.07);}
 .info-tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-faint); font-weight:700;}
 .info-tile .v{font-size:17px; font-weight:800; margin-top:4px;}
 
@@ -182,9 +193,9 @@ a{color:var(--violet);}
 .qtext{font-size:19px; font-weight:700; margin:14px 0 16px; line-height:1.4;}
 
 .option-card{
-  background:var(--bg-card); border:1.5px solid var(--border-soft); border-radius:16px; padding:12px;
+  background:linear-gradient(165deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 32%), var(--bg-card); border:1.5px solid var(--border-soft); border-radius:16px; padding:12px;
   margin-bottom:10px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, background .15s;
-  box-shadow:var(--shadow);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.07);
 }
 .option-card.selected{border-color:var(--violet); background:rgba(124,92,252,.06);}
 .option-top{display:flex; align-items:center; gap:12px;}
@@ -194,11 +205,11 @@ a{color:var(--violet);}
 }
 .option-card.selected .option-letter{background:var(--violet); color:#fff; border-color:var(--violet);}
 .play-btn{
-  width:44px; height:44px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--violet),var(--violet-dim));
+  width:44px; height:44px; border-radius:50%; border:none; background:linear-gradient(180deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,0) 50%),linear-gradient(135deg,var(--violet),var(--violet-dim));
   color:#000; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none; cursor:pointer;
-  box-shadow:0 6px 16px -6px var(--violet-glow);
+  box-shadow:0 6px 16px -6px var(--violet-glow), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 5px rgba(0,0,0,.2);
 }
-.play-btn.playing{background:linear-gradient(135deg,var(--amber),#ffd27a); color:#241705; box-shadow:0 6px 16px -6px rgba(255,182,39,.5);}
+.play-btn.playing{background:linear-gradient(180deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,0) 50%),linear-gradient(135deg,var(--amber),#ffd27a); color:#241705; box-shadow:0 6px 16px -6px rgba(255,182,39,.5), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 5px rgba(120,70,0,.2);}
 .audio-progress{flex:1; display:flex; align-items:center; gap:8px;}
 .audio-bar{flex:1; height:6px; border-radius:999px; background:var(--bg-input); position:relative; cursor:pointer; overflow:hidden;}
 .audio-bar-fill{position:absolute; left:0; top:0; bottom:0; background:var(--teal); border-radius:999px; width:0%;}
@@ -320,8 +331,8 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
   transform:translateX(-50%);
   width:100%;
   max-width:560px;
-  height:64px;
-  padding-bottom:max(env(safe-area-inset-bottom, 0px), 18px);
+  height:60px;
+  padding-bottom:env(safe-area-inset-bottom, 0);
   background:var(--bg-card, #fff);
   border-top:1px solid var(--border-soft);
   display:flex;
@@ -629,6 +640,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
             <div class="sub">score</div>
           </div>
         </div>
+        <div id="result-speed-note" style="font-size:12.5px; font-weight:700; margin-top:-4px; margin-bottom:6px;"></div>
         <div id="result-badges" class="badge-row"></div>
         <div class="stat-grid">
           <div class="stat-box"><div class="v" id="result-correct" style="color:var(--violet);">0</div><div class="k">✅ Correct</div></div>
@@ -690,6 +702,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         <div class="card" id="next-challenge-card-claim" style="display:none; margin-top:14px; text-align:left;"></div>
         <button class="btn btn-ghost" id="btn-back-to-results" style="margin-top:10px; display:none;">← Back to Results</button>
         <button class="btn btn-ghost" id="btn-voucher-import" style="margin-top:10px; display:none;">📥 Import New Challenge</button>
+        <button class="btn btn-ghost" id="btn-voucher-claim-home" style="margin-top:10px;">🏠 Back to Home</button>
       </div>
     </div>
   </section>
@@ -713,6 +726,7 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         <button class="btn btn-ghost copy-btn" id="btn-back-to-results-unlocked">← Back to Results</button>
         <div class="card" id="next-challenge-card-unlocked" style="display:none; margin-top:14px; text-align:left;"></div>
         <button class="btn btn-ghost" id="btn-voucher-import-unlocked" style="margin-top:10px; display:none;">📥 Import New Challenge</button>
+        <button class="btn btn-ghost" id="btn-voucher-unlocked-home" style="margin-top:10px;">🏠 Back to Home</button>
       </div>
     </div>
   </section>
@@ -849,6 +863,12 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
         <label class="switch"><input type="checkbox" id="set-timer-enabled"><span class="track"></span></label>
       </div>
       <div class="field" id="set-timelimit-field"><label>Time limit (minutes)</label><input type="number" id="set-timelimit" min="1" value="10"></div>
+
+      <div class="switch-row">
+        <div><div class="switch-label">Speed bonus/penalty</div><div class="switch-desc">Fast finishers gain points, slow finishers lose points — helps break ties</div></div>
+        <label class="switch"><input type="checkbox" id="set-speed-enabled"><span class="track"></span></label>
+      </div>
+      <div class="field" id="set-speed-par-field"><label>Expected time per question (seconds)</label><input type="number" id="set-speed-par" min="3" value="20"><p class="faint" style="margin-top:6px;">Finishing well under this pace earns +1 to +3. Finishing well over it costs -2 to -4.</p></div>
 
       <div class="switch-row">
         <div><div class="switch-label">Randomize questions</div><div class="switch-desc">Different order per participant</div></div>
@@ -1089,6 +1109,11 @@ table.results-table th{color:var(--text-faint); font-size:11px; text-transform:u
           <label class="switch"><input type="checkbox" id="sub-timer-enabled"><span class="track"></span></label>
         </div>
         <div class="field" id="sub-timelimit-field" style="display:none;"><label>Time limit (minutes)</label><input type="number" id="sub-timelimit" min="1" value="10"></div>
+        <div class="switch-row">
+          <div><div class="switch-label">Speed bonus/penalty</div><div class="switch-desc">Fast finishers gain points, slow finishers lose points — helps break ties</div></div>
+          <label class="switch"><input type="checkbox" id="sub-speed-enabled"><span class="track"></span></label>
+        </div>
+        <div class="field" id="sub-speed-par-field" style="display:none;"><label>Expected time per question (seconds)</label><input type="number" id="sub-speed-par" min="3" value="20"></div>
       </div>
 
       <div class="card">
@@ -1255,6 +1280,23 @@ const LS_PLAYED_COMP_IDS = 'mc_played_comp_ids_v1';
 const DEFAULT_POINTS = 10;
 const DEFAULT_ADMIN_PASSWORD = 'lulamachuma@4856';
 
+// Speed bonus/penalty: compares actual completion time against an admin-set
+// "expected seconds per question" pace. Well under pace earns a small bonus,
+// well over pace costs a small penalty. Near-pace finishes are untouched.
+function computeSpeedAdjustment(completionSeconds, totalQuestions, parSecondsPerQuestion){
+  if(!totalQuestions || !parSecondsPerQuestion) return 0;
+  const parTotal = parSecondsPerQuestion * totalQuestions;
+  if(parTotal <= 0) return 0;
+  const ratio = completionSeconds / parTotal;
+  if(ratio <= 0.5) return 3;
+  if(ratio <= 0.7) return 2;
+  if(ratio <= 0.9) return 1;
+  if(ratio <= 1.15) return 0;
+  if(ratio <= 1.5) return -2;
+  if(ratio <= 2.0) return -3;
+  return -4;
+}
+
 /* ============================================================
    STATE
    ============================================================ */
@@ -1406,6 +1448,8 @@ function defaultCompetition(){
     pointsPerQuestion: DEFAULT_POINTS,
     timerEnabled: false,
     timeLimitMinutes: 10,
+    speedScoringEnabled: false,
+    speedParSeconds: 20,
     randomizeQuestions: true,
     randomizeAnswers: true,
     strictMode: false,
@@ -1989,6 +2033,8 @@ $('#global-home-btn').addEventListener('click', ()=>{
   showScreen('screen-landing');
 });
 $('#btn-results-home').addEventListener('click', ()=>{ $('#global-home-btn').click(); });
+$('#btn-voucher-claim-home').addEventListener('click', ()=>{ $('#global-home-btn').click(); });
+$('#btn-voucher-unlocked-home').addEventListener('click', ()=>{ $('#global-home-btn').click(); });
 
 $('#btn-join').addEventListener('click', ()=>{
   const c = State.competition;
@@ -2447,10 +2493,14 @@ async function finishQuiz(){
   const answers = State.quiz.answers;
   const correctCount = answers.filter(a=>a.correct).length;
   const incorrectCount = answers.length - correctCount;
-  const score = correctCount * (c.pointsPerQuestion || DEFAULT_POINTS);
+  const baseScore = correctCount * (c.pointsPerQuestion || DEFAULT_POINTS);
   const maxScore = c.questions.length * (c.pointsPerQuestion || DEFAULT_POINTS);
   const pct = c.questions.length ? Math.round((correctCount / c.questions.length) * 100) : 0;
   const completionSeconds = (Date.now() - State.quiz.startTime) / 1000;
+  const speedAdjustment = c.speedScoringEnabled
+    ? computeSpeedAdjustment(completionSeconds, c.questions.length, c.speedParSeconds || 20)
+    : 0;
+  const score = Math.max(0, baseScore + speedAdjustment);
   const resultId = genResultId();
   const playerName = State.quiz.playerName || 'Player';
   const verifyCode = await computeVerifyCode(c.id, playerName, correctCount, c.questions.length);
@@ -2460,6 +2510,7 @@ async function finishQuiz(){
     competitionId: c.id,
     playerName,
     score, maxScore,
+    speedAdjustment,
     correct: correctCount,
     incorrect: incorrectCount,
     total: c.questions.length,
@@ -2490,6 +2541,13 @@ function renderResults(attempt){
   $('#result-comp-name').textContent = c.name;
   $('#result-player-name').textContent = attempt.playerName;
   $('#result-score').innerHTML = `${attempt.score}<span style="font-size:16px;">/${attempt.maxScore}</span>`;
+  const speedNoteEl = $('#result-speed-note');
+  if(speedNoteEl){
+    const adj = attempt.speedAdjustment || 0;
+    if(adj > 0) speedNoteEl.innerHTML = `<span style="color:var(--teal);">⚡ +${adj} speed bonus</span>`;
+    else if(adj < 0) speedNoteEl.innerHTML = `<span style="color:var(--red);">🐢 ${adj} slow penalty</span>`;
+    else speedNoteEl.innerHTML = '';
+  }
   $('#result-correct').textContent = attempt.correct;
   $('#result-incorrect').textContent = attempt.incorrect;
   $('#result-accuracy').textContent = attempt.percentage + '%';
@@ -2533,7 +2591,7 @@ function renderResults(attempt){
   const lb = $('#leaderboard-block');
   if(c.showLeaderboard && !State.isPreview){
     lb.classList.remove('hidden');
-    const top = State.attempts.slice().sort((a,b)=>b.score-a.score).slice(0,5);
+    const top = State.attempts.slice().sort((a,b)=> b.score-a.score || a.completionTime-b.completionTime).slice(0,5);
     const medals = ['🥇','🥈','🥉'];
     $('#leaderboard-list').innerHTML = top.map((a,i)=>`
       <div class="row-between">
@@ -2812,43 +2870,38 @@ $('#btn-admin').addEventListener('click', ()=> renderAdminLoginScreen());
 function renderAdminLoginScreen(){
   const c = State.competition;
   const area = $('#admin-login-area');
-  if(!c.adminPasswordHash){
-    area.innerHTML = `
-      <div class="logo-emoji">🛠</div>
-      <h2>SET UP ADMIN PASSWORD</h2>
-      <p class="muted">This is your first time entering admin mode. Choose a password to protect the dashboard.</p>
-      <div class="stack" style="width:100%;">
-        <div class="field"><input type="password" id="setup-admin-pw" placeholder="Create admin password" autocomplete="new-password"></div>
-        <div class="hint-error" id="setup-admin-error"></div>
-        <button class="btn btn-primary" id="btn-setup-admin">Set Password & Continue</button>
-      </div>`;
-    $('#btn-setup-admin').addEventListener('click', async ()=>{
-      const pw = $('#setup-admin-pw').value;
-      if(pw.length < 4){ $('#setup-admin-error').textContent = 'Password must be at least 4 characters.'; return; }
-      c.adminPasswordHash = await sha256Hex(pw);
-      saveCompetition();
-      enterAdminDashboard();
-    });
-  } else {
-    area.innerHTML = `
-      <div class="logo-emoji">🛠</div>
-      <h2>ADMIN LOGIN</h2>
-      <div class="stack" style="width:100%;">
-        <div class="field"><input type="password" id="admin-pw-input" placeholder="Admin password" autocomplete="off"></div>
-        <div class="hint-error" id="admin-login-error"></div>
-        <button class="btn btn-primary" id="btn-admin-login">Login</button>
-      </div>`;
-    $('#btn-admin-login').addEventListener('click', async ()=>{
-      const pw = $('#admin-pw-input').value;
-      const hash = await sha256Hex(pw);
-      if(hash !== c.adminPasswordHash){ $('#admin-login-error').textContent = 'Incorrect password.'; return; }
-      enterAdminDashboard();
-    });
-    setTimeout(()=>{
-      const input = $('#admin-pw-input');
-      if(input){ input.focus(); input.addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btn-admin-login').click(); }); }
-    },0);
-  }
+  area.innerHTML = `
+    <div class="logo-emoji">🛠</div>
+    <h2>ADMIN LOGIN</h2>
+    <div class="stack" style="width:100%;">
+      <div class="field"><input type="password" id="admin-pw-input" placeholder="Admin password" autocomplete="off"></div>
+      <div class="hint-error" id="admin-login-error"></div>
+      <button class="btn btn-primary" id="btn-admin-login">Login</button>
+    </div>`;
+  $('#btn-admin-login').addEventListener('click', async ()=>{
+    const pw = $('#admin-pw-input').value;
+    const hash = await sha256Hex(pw);
+    // A brand-new competition has no admin password set yet — the built-in
+    // default already works out of the box, so no separate "set up a
+    // password" step is needed. Logging in with it locks it in going
+    // forward; it can always be changed later from Settings.
+    if(!c.adminPasswordHash){
+      if(pw === DEFAULT_ADMIN_PASSWORD){
+        c.adminPasswordHash = hash;
+        saveCompetition();
+        enterAdminDashboard();
+        return;
+      }
+      $('#admin-login-error').textContent = 'Incorrect password.';
+      return;
+    }
+    if(hash !== c.adminPasswordHash){ $('#admin-login-error').textContent = 'Incorrect password.'; return; }
+    enterAdminDashboard();
+  });
+  setTimeout(()=>{
+    const input = $('#admin-pw-input');
+    if(input){ input.focus(); input.addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btn-admin-login').click(); }); }
+  },0);
   showScreen('screen-admin-login');
 }
 
@@ -2989,6 +3042,9 @@ function fillSettingsForm(){
   $('#set-timer-enabled').checked = c.timerEnabled;
   $('#set-timelimit').value = c.timeLimitMinutes;
   $('#set-timelimit-field').style.display = c.timerEnabled ? '' : 'none';
+  $('#set-speed-enabled').checked = !!c.speedScoringEnabled;
+  $('#set-speed-par').value = c.speedParSeconds || 20;
+  $('#set-speed-par-field').style.display = c.speedScoringEnabled ? '' : 'none';
   $('#set-randomize-q').checked = c.randomizeQuestions;
   $('#set-randomize-a').checked = c.randomizeAnswers;
   $('#set-strict').checked = c.strictMode;
@@ -3003,6 +3059,9 @@ function fillSettingsForm(){
 }
 $('#set-timer-enabled').addEventListener('change', ()=>{
   $('#set-timelimit-field').style.display = $('#set-timer-enabled').checked ? '' : 'none';
+});
+$('#set-speed-enabled').addEventListener('change', ()=>{
+  $('#set-speed-par-field').style.display = $('#set-speed-enabled').checked ? '' : 'none';
 });
 $('#btn-toggle-comp-pw').addEventListener('click', ()=>{
   const input = $('#set-comp-password');
@@ -3032,6 +3091,8 @@ $('#btn-save-settings').addEventListener('click', async ()=>{
   c.pointsPerQuestion = Math.max(1, parseInt($('#set-points').value)||DEFAULT_POINTS);
   c.timerEnabled = $('#set-timer-enabled').checked;
   c.timeLimitMinutes = Math.max(1, parseInt($('#set-timelimit').value)||10);
+  c.speedScoringEnabled = $('#set-speed-enabled').checked;
+  c.speedParSeconds = Math.max(3, parseInt($('#set-speed-par').value)||20);
   c.randomizeQuestions = $('#set-randomize-q').checked;
   c.randomizeAnswers = $('#set-randomize-a').checked;
   c.strictMode = $('#set-strict').checked;
@@ -3316,18 +3377,27 @@ $('#btn-qed-duplicate').addEventListener('click', ()=>{
 function renderResultsTable(sortMode){
   const body = $('#results-table-body');
   let list = State.attempts.slice();
-  if(sortMode==='score') list.sort((a,b)=> b.score-a.score);
+  // Score ties are broken by fastest completion time, so there's always a single
+  // clear #1 — no more two players landing on the exact same score with no way
+  // to tell who actually wins the voucher.
+  if(sortMode==='score') list.sort((a,b)=> b.score-a.score || a.completionTime-b.completionTime);
   else if(sortMode==='time') list.sort((a,b)=> a.completionTime-b.completionTime);
   else if(sortMode==='newest') list.sort((a,b)=> b.timestamp-a.timestamp);
   $('#results-empty').classList.toggle('hidden', list.length>0);
-  body.innerHTML = list.map(a=>`
-    <tr>
-      <td>${escapeHtml(a.playerName)}</td>
-      <td>${a.score}</td>
+  body.innerHTML = list.map((a,i)=>{
+    const isWinner = sortMode==='score' && i===0 && list.length>0;
+    const tied = sortMode==='score' && i>0 && a.score===list[0].score;
+    const adj = a.speedAdjustment || 0;
+    const adjBadge = adj !== 0 ? ` <span style="font-size:11px; color:${adj>0?'var(--teal)':'var(--red)'};">(${adj>0?'+':''}${adj} speed)</span>` : '';
+    return `
+    <tr${isWinner ? ' style="background:rgba(139,92,246,.12);"' : ''}>
+      <td>${isWinner ? '👑 ' : ''}${escapeHtml(a.playerName)}</td>
+      <td>${a.score}${adjBadge}${tied ? ' <span style="color:var(--text-faint); font-size:11px;">(tied, lost on time)</span>' : ''}</td>
       <td>${a.correct}/${a.total}</td>
       <td>${fmtTime(a.completionTime)}</td>
       <td>${a.resultId}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 $all('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -4044,6 +4114,8 @@ function subNewDraft(){
     pointsPerQuestion: 10,
     timerEnabled: false,
     timeLimitMinutes: 10,
+    speedScoringEnabled: false,
+    speedParSeconds: 20,
     songs: [],
     voucher: {
       amount: '',
@@ -4100,6 +4172,9 @@ function openSubChallengeCreator(){
   $('#sub-timer-enabled').checked = !!d.timerEnabled;
   $('#sub-timelimit-field').style.display = d.timerEnabled ? '' : 'none';
   $('#sub-timelimit').value = d.timeLimitMinutes;
+  $('#sub-speed-enabled').checked = !!d.speedScoringEnabled;
+  $('#sub-speed-par-field').style.display = d.speedScoringEnabled ? '' : 'none';
+  $('#sub-speed-par').value = d.speedParSeconds || 20;
   $('#sub-vset-amount').value = d.voucher.amount || '';
   $('#sub-vset-number').value = d.voucher.number || '';
   $('#sub-vset-pin').value = d.voucher.pin || '';
@@ -4492,6 +4567,19 @@ const SUB_CHALLENGE_JS = `
     var code = (hex.toUpperCase() + '00000000').slice(0,8).replace(/[^A-Z0-9]/g,'0');
     return code.slice(0,4) + '-' + code.slice(4,8);
   }
+  function computeSpeedAdjustment(completionSeconds, totalQuestions, parSecondsPerQuestion){
+    if(!totalQuestions || !parSecondsPerQuestion) return 0;
+    var parTotal = parSecondsPerQuestion * totalQuestions;
+    if(parTotal <= 0) return 0;
+    var ratio = completionSeconds / parTotal;
+    if(ratio <= 0.5) return 3;
+    if(ratio <= 0.7) return 2;
+    if(ratio <= 0.9) return 1;
+    if(ratio <= 1.15) return 0;
+    if(ratio <= 1.5) return -2;
+    if(ratio <= 2.0) return -3;
+    return -4;
+  }
   function genResultId(){
     var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     var out = 'MH-';
@@ -4784,6 +4872,13 @@ const SUB_CHALLENGE_JS = `
   function renderResultsObj(attempt){
     q('#r-name').textContent = attempt.playerName || 'Player';
     q('#r-score').innerHTML = attempt.score + '<span style="font-size:16px;">/' + attempt.maxScore + '</span>';
+    var speedNoteEl = q('#r-speed-note');
+    if(speedNoteEl){
+      var adj = attempt.speedAdjustment || 0;
+      if(adj > 0) speedNoteEl.innerHTML = '<span style="color:var(--teal);">⚡ +' + adj + ' speed bonus</span>';
+      else if(adj < 0) speedNoteEl.innerHTML = '<span style="color:var(--red);">🐢 ' + adj + ' slow penalty</span>';
+      else speedNoteEl.innerHTML = '';
+    }
     q('#r-correct').textContent = attempt.correct;
     q('#r-incorrect').textContent = attempt.incorrect;
     q('#r-accuracy').textContent = attempt.percentage + '%';
@@ -4835,11 +4930,15 @@ const SUB_CHALLENGE_JS = `
     var pct = total ? Math.round((correct/total)*100) : 0;
     var secs = Math.round((Date.now() - state.startTime)/1000);
     var pts = Number(data.pointsPerQuestion) || 10;
+    var baseScore = correct*pts;
+    var speedAdjustment = data.speedScoringEnabled ? computeSpeedAdjustment(secs, total, Number(data.speedParSeconds)||20) : 0;
+    var finalScore = Math.max(0, baseScore + speedAdjustment);
 
     var attempt = {
       playerName: state.playerName || 'Player',
-      score: correct*pts,
+      score: finalScore,
       maxScore: total*pts,
+      speedAdjustment: speedAdjustment,
       correct: correct,
       incorrect: incorrect,
       total: total,
@@ -4980,6 +5079,15 @@ const SUB_CHALLENGE_JS = `
     homeBtn.onclick = function(){ show('landing'); };
   }
 
+  var voucherClaimHomeBtn = q('#btn-voucher-claim-home');
+  if(voucherClaimHomeBtn){
+    voucherClaimHomeBtn.onclick = function(){ show('landing'); };
+  }
+  var voucherUnlockedHomeBtn = q('#btn-voucher-unlocked-home');
+  if(voucherUnlockedHomeBtn){
+    voucherUnlockedHomeBtn.onclick = function(){ show('landing'); };
+  }
+
   var viewResultBtn = q('#btn-view-my-result');
   if(viewResultBtn){
     viewResultBtn.onclick = function(){
@@ -5018,6 +5126,8 @@ function generateSubChallengeHTML(){
     pointsPerQuestion: Math.max(1, Number(d.pointsPerQuestion) || 10),
     timerEnabled: !!d.timerEnabled,
     timeLimitMinutes: Math.max(1, Number(d.timeLimitMinutes) || 10),
+    speedScoringEnabled: !!d.speedScoringEnabled,
+    speedParSeconds: Math.max(3, Number(d.speedParSeconds) || 20),
     voucher: {
       amount: (d.voucher && d.voucher.amount) || '',
       number: (d.voucher && d.voucher.number) || '',
@@ -5073,6 +5183,7 @@ function generateSubChallengeHTML(){
         </div>
         <div class="hint-error" id="v-password-error"></div>
         <button class="btn btn-primary" id="btn-unlock-voucher" style="font-size:18px;height:56px;">Unlock Voucher</button>
+        <button class="btn btn-ghost" id="btn-voucher-claim-home" style="margin-top:10px;">🏠 Home</button>
       </div>
     </div>
   </section>
@@ -5090,6 +5201,7 @@ function generateSubChallengeHTML(){
         <div class="voucher-number" id="v-number">VOUCHER NUMBER: —</div>
         <p class="muted" style="margin-top:4px;" id="v-pin-display">PIN: —</p>
         <button class="btn btn-outline copy-btn" id="btn-copy-voucher">📋 Copy Voucher Number</button>
+        <button class="btn btn-ghost copy-btn" id="btn-voucher-unlocked-home" style="margin-top:10px;">🏠 Home</button>
       </div>
     </div>
   </section>` : '';
@@ -5167,6 +5279,7 @@ function generateSubChallengeHTML(){
             <div class="sub">score</div>
           </div>
         </div>
+        <div id="r-speed-note" style="font-size:12.5px;font-weight:700;margin-top:-4px;margin-bottom:6px;"></div>
         <div id="r-badges" class="badge-row"></div>
         <div class="stat-grid">
           <div class="stat-box"><div class="v" id="r-correct" style="color:var(--violet);">0</div><div class="k">✅ Correct</div></div>
@@ -5293,6 +5406,14 @@ function resetSubChallengeDraft(){
   });
   on('#sub-timelimit', 'input', function(e){
     if(State.subChallenge.draft) State.subChallenge.draft.timeLimitMinutes = Math.max(1, parseInt(e.target.value, 10) || 10);
+  });
+  on('#sub-speed-enabled', 'change', function(e){
+    if(State.subChallenge.draft) State.subChallenge.draft.speedScoringEnabled = e.target.checked;
+    const f = document.querySelector('#sub-speed-par-field');
+    if(f) f.style.display = e.target.checked ? '' : 'none';
+  });
+  on('#sub-speed-par', 'input', function(e){
+    if(State.subChallenge.draft) State.subChallenge.draft.speedParSeconds = Math.max(3, parseInt(e.target.value, 10) || 20);
   });
   on('#sub-vset-amount', 'input', function(e){
     if(State.subChallenge.draft){ if(!State.subChallenge.draft.voucher) State.subChallenge.draft.voucher = {}; State.subChallenge.draft.voucher.amount = e.target.value; }
